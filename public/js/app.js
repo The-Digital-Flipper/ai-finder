@@ -1066,3 +1066,354 @@ function closeWorkspace() {
   wsRunLabel.textContent = 'Run';
 }
 
+// ════════════════════════════════════════════════════════════
+// THEME TOGGLE (dark / light)
+// ════════════════════════════════════════════════════════════
+(function initTheme() {
+  const saved = localStorage.getItem('aifinder_theme');
+  if (saved === 'light') document.body.classList.add('light-mode');
+})();
+
+document.getElementById('themeToggle').addEventListener('click', e => {
+  e.stopPropagation();
+  document.body.classList.toggle('light-mode');
+  const isLight = document.body.classList.contains('light-mode');
+  localStorage.setItem('aifinder_theme', isLight ? 'light' : 'dark');
+  document.getElementById('themeToggle').textContent = isLight ? '🌙 Toggle Theme' : '☀️ Toggle Theme';
+  showToast(isLight ? '☀️ Light mode on' : '🌙 Dark mode on', 'info');
+});
+
+// ════════════════════════════════════════════════════════════
+// PROFILE DROPDOWN
+// ════════════════════════════════════════════════════════════
+const profileDropdown = document.getElementById('profileDropdown');
+
+document.getElementById('workspaceSelector').addEventListener('click', e => {
+  e.stopPropagation();
+  profileDropdown.classList.toggle('open');
+});
+document.addEventListener('click', () => profileDropdown.classList.remove('open'));
+
+// ════════════════════════════════════════════════════════════
+// SHORTCUTS LINK IN SIDEBAR FOOTER
+// ════════════════════════════════════════════════════════════
+document.getElementById('openShortcutsLink').addEventListener('click', e => {
+  e.preventDefault(); openShortcuts();
+});
+
+// ════════════════════════════════════════════════════════════
+// NOTIFICATION BELL
+// ════════════════════════════════════════════════════════════
+const NOTIFICATIONS = [
+  { type:'success', title:'Build succeeded',   desc:'tube-shorts-pro built in 2.1s',               time:'2 min ago',  unread:true  },
+  { type:'info',    title:'App deployed',       desc:'Live at tube-shorts-pro.repl.co',              time:'5 min ago',  unread:true  },
+  { type:'ai',      title:'AI suggestion',      desc:'Found 1 potential performance optimization',   time:'12 min ago', unread:true  },
+  { type:'warn',    title:'Usage at 100%',      desc:'Agent credits exhausted — upgrade to continue', time:'1 hr ago',  unread:false },
+];
+
+const wsNotifBtn   = document.getElementById('wsNotifBtn');
+const wsNotifPanel = document.getElementById('wsNotifPanel');
+const wsNotifBadge = document.getElementById('wsNotifBadge');
+const wsNotifList  = document.getElementById('wsNotifList');
+
+function renderNotifications() {
+  wsNotifList.innerHTML = '';
+  NOTIFICATIONS.forEach(n => {
+    const item = document.createElement('div');
+    item.className = `ws-notif-item${n.unread ? ' unread' : ''}`;
+    item.innerHTML = `
+      <div class="ws-notif-dot ${n.type}"></div>
+      <div class="ws-notif-content">
+        <div class="ws-notif-title">${n.title}</div>
+        <div class="ws-notif-desc">${n.desc}</div>
+        <div class="ws-notif-time">${n.time}</div>
+      </div>`;
+    wsNotifList.appendChild(item);
+  });
+  const unreadCount = NOTIFICATIONS.filter(n => n.unread).length;
+  wsNotifBadge.textContent = unreadCount;
+  wsNotifBadge.classList.toggle('hidden', unreadCount === 0);
+}
+
+wsNotifBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  wsNotifPanel.classList.toggle('open');
+  if (wsNotifPanel.classList.contains('open')) renderNotifications();
+});
+
+document.getElementById('wsNotifClear').addEventListener('click', () => {
+  NOTIFICATIONS.forEach(n => n.unread = false);
+  renderNotifications();
+  wsNotifBadge.classList.add('hidden');
+  showToast('All notifications marked as read', 'info');
+});
+
+document.addEventListener('click', e => {
+  if (!wsNotifPanel.contains(e.target) && e.target !== wsNotifBtn) {
+    wsNotifPanel.classList.remove('open');
+  }
+});
+
+// ════════════════════════════════════════════════════════════
+// MARKDOWN RENDERER & PREVIEW
+// ════════════════════════════════════════════════════════════
+const README_TEMPLATES = {
+  'Node.js': (name) => `# ${name}
+
+A Node.js application built with Express.
+
+## Getting Started
+
+\`\`\`bash
+npm install
+npm start
+\`\`\`
+
+## Features
+
+- **REST API** with Express routing
+- **Auto-restart** with nodemon in dev mode
+- **Environment config** via \`.env\`
+
+## Environment Variables
+
+| Variable | Description |
+|---|---|
+| \`PORT\` | Server port (default 3000) |
+| \`NODE_ENV\` | \`development\` or \`production\` |
+
+## License
+
+MIT © ${new Date().getFullYear()}`,
+
+  Python: (name) => `# ${name}
+
+A Python Flask REST API.
+
+## Setup
+
+\`\`\`bash
+pip install -r requirements.txt
+python main.py
+\`\`\`
+
+## Routes
+
+- \`GET /\` — health check
+- \`GET /api/data\` — fetch data
+
+## License
+
+MIT`,
+
+  React: (name) => `# ${name}
+
+A React application.
+
+## Scripts
+
+\`\`\`bash
+npm install      # install deps
+npm run dev      # start dev server
+npm run build    # production build
+\`\`\`
+
+## Structure
+
+\`\`\`
+src/
+  App.jsx
+  index.js
+public/
+  index.html
+\`\`\``,
+
+  Go: (name) => `# ${name}
+
+A Go HTTP server.
+
+## Run
+
+\`\`\`bash
+go run main.go
+\`\`\`
+
+## Build
+
+\`\`\`bash
+go build -o app && ./app
+\`\`\``,
+
+  Rust: (name) => `# ${name}
+
+A Rust CLI application.
+
+## Run
+
+\`\`\`bash
+cargo run
+\`\`\`
+
+## Build
+
+\`\`\`bash
+cargo build --release
+\`\`\``,
+
+  'HTML/CSS/JS': (name) => `# ${name}
+
+A static web app.
+
+## Files
+
+- \`index.html\` — main page
+- \`style.css\`  — styles
+- \`script.js\`  — logic
+
+## Deploy
+
+Drag the folder into any static host.`,
+};
+
+function md2html(md) {
+  // process code blocks first (before escaping)
+  const codeBlocks = [];
+  md = md.replace(/```[\s\S]*?```/g, m => {
+    codeBlocks.push(m.slice(3, m.lastIndexOf('```')).replace(/^[^\n]*\n/, ''));
+    return `%%CODE${codeBlocks.length - 1}%%`;
+  });
+
+  // html-escape everything else
+  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  md = esc(md);
+
+  // headings
+  md = md.replace(/^# (.+)$/gm,  '<h1>$1</h1>');
+  md = md.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+  md = md.replace(/^### (.+)$/gm,'<h3>$1</h3>');
+  // bold, italic, inline code
+  md = md.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  md = md.replace(/\*(.+?)\*/g,     '<em>$1</em>');
+  md = md.replace(/`([^`]+)`/g,     '<code>$1</code>');
+  // hr
+  md = md.replace(/^---$/gm, '<hr>');
+  // blockquote
+  md = md.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
+  // table rows (simple)
+  md = md.replace(/^\|.*\|$/gm, m => `<span style="display:block;font-size:11px;color:#888;">${m}</span>`);
+  // unordered list
+  md = md.replace(/((?:^- .+\n?)+)/gm, m => `<ul>${m.replace(/^- (.+)$/gm,'<li>$1</li>')}</ul>`);
+  // restore code blocks
+  codeBlocks.forEach((code, i) => {
+    const escaped = esc(code);
+    md = md.replace(`%%CODE${i}%%`, `<pre><code>${escaped}</code></pre>`);
+  });
+  // paragraphs
+  md = md.split(/\n{2,}/).map(para => {
+    const t = para.trim();
+    if (!t || t.startsWith('<h') || t.startsWith('<ul') || t.startsWith('<pre') || t.startsWith('<hr') || t.startsWith('<blockquote')) return t;
+    return `<p>${t.replace(/\n/g,' ')}</p>`;
+  }).join('\n');
+
+  return md;
+}
+
+function showMarkdownPreview(filename, stack) {
+  const codeBody = document.getElementById('wsCodeBody');
+  const mdView   = document.getElementById('wsMdView');
+  if (!codeBody || !mdView) return;
+
+  const projectName = activeProject?.name || 'project';
+  const rawMd = (README_TEMPLATES[stack] || README_TEMPLATES['Node.js'])(projectName);
+
+  codeBody.style.display = 'none';
+  mdView.style.display   = 'flex';
+  mdView.style.flexDirection = 'column';
+  mdView.innerHTML = md2html(rawMd);
+  document.getElementById('wsCodeFilename').textContent = filename;
+  const sbFile = document.getElementById('wsStatusFile');
+  if (sbFile) sbFile.textContent = filename;
+}
+
+function showCodeView() {
+  const codeBody = document.getElementById('wsCodeBody');
+  const mdView   = document.getElementById('wsMdView');
+  if (codeBody) codeBody.style.display = '';
+  if (mdView)   mdView.style.display   = 'none';
+}
+
+// ════════════════════════════════════════════════════════════
+// FILE TYPE ICONS (replace generic file icon in tree)
+// ════════════════════════════════════════════════════════════
+const FILE_ICON_MAP = {
+  '.js':   { color:'#f7df1e', bg:'rgba(247,223,30,0.15)',  label:'JS'  },
+  '.jsx':  { color:'#61dafb', bg:'rgba(97,218,251,0.15)',  label:'JSX' },
+  '.ts':   { color:'#3178c6', bg:'rgba(49,120,198,0.2)',   label:'TS'  },
+  '.py':   { color:'#4584b6', bg:'rgba(69,132,182,0.15)',  label:'PY'  },
+  '.json': { color:'#fbbf24', bg:'rgba(251,191,36,0.15)',  label:'{ }' },
+  '.html': { color:'#e34c26', bg:'rgba(227,76,38,0.15)',   label:'HTM' },
+  '.css':  { color:'#a855f7', bg:'rgba(168,85,247,0.15)',  label:'CSS' },
+  '.md':   { color:'#60a5fa', bg:'rgba(96,165,250,0.15)',  label:'MD'  },
+  '.env':  { color:'#22c55e', bg:'rgba(34,197,94,0.15)',   label:'ENV' },
+  '.go':   { color:'#00acd7', bg:'rgba(0,172,215,0.15)',   label:'GO'  },
+  '.rs':   { color:'#dea584', bg:'rgba(222,165,132,0.2)',  label:'RS'  },
+  '.toml': { color:'#9c4221', bg:'rgba(156,66,33,0.2)',    label:'TML' },
+  '.mod':  { color:'#9ca3af', bg:'rgba(156,163,175,0.15)', label:'MOD' },
+  '.txt':  { color:'#9ca3af', bg:'rgba(156,163,175,0.12)', label:'TXT' },
+};
+
+function getFileIconHtml(filename) {
+  const ext = filename.includes('.') ? '.' + filename.split('.').pop() : '';
+  const info = FILE_ICON_MAP[ext];
+  if (!info) return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`;
+  return `<span class="ws-file-ext" style="color:${info.color};background:${info.bg}">${info.label}</span>`;
+}
+
+// patch renderFileTree to use icons + handle .md preview
+const _origRenderFileTree = renderFileTree;
+function renderFileTree(stack) {
+  const files = filesByStack[stack] || filesByStack['Node.js'];
+  const tree  = document.getElementById('wsFileTree');
+  tree.innerHTML = '';
+
+  files.forEach((f, i) => {
+    const item = document.createElement('div');
+    item.className = `ws-file-item${i === 0 ? ' active' : ''}`;
+    item.innerHTML = `${getFileIconHtml(f.name)} ${f.name}`;
+    item.addEventListener('click', () => {
+      tree.querySelectorAll('.ws-file-item').forEach(el => el.classList.remove('active'));
+      item.classList.add('active');
+      if (f.name.endsWith('.md')) {
+        showMarkdownPreview(f.name, stack);
+      } else {
+        showCodeView();
+        document.getElementById('wsCodeFilename').textContent = f.name;
+        const sbFile = document.getElementById('wsStatusFile');
+        if (sbFile) sbFile.textContent = f.name;
+        const langEl = document.getElementById('wsCodeLang');
+        if (langEl) langEl.textContent = f.lang;
+      }
+      openWsPane('editor');
+    });
+    tree.appendChild(item);
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// LINE COUNT IN STATUS BAR
+// ════════════════════════════════════════════════════════════
+const _origLoadCode = loadCode;
+function loadCode(stack) {
+  _origLoadCode(stack);
+  showCodeView();
+  const code = codeTemplates[stack] || codeTemplates['Node.js'];
+  const lineCount = code.split('\n').length;
+  // update status bar with "X lines" indicator
+  const sbFile = document.getElementById('wsStatusFile');
+  if (sbFile) {
+    const file = (filesByStack[stack] || filesByStack['Node.js'])[0];
+    sbFile.textContent = `${file?.name || 'index.js'} (${lineCount} lines)`;
+  }
+}
+
+
