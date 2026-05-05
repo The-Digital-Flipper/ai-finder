@@ -590,11 +590,13 @@
         <div class="ws-panel-content" id="wsPanelFiles">
           <div class="ws-panel-header">
             <span id="wsPanelProjectName">project</span>
-            <button class="ws-panel-btn" title="New file">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-              </svg>
-            </button>
+            <div style="display:flex;gap:4px">
+              <button class="ws-panel-btn" id="wsNewFileBtn" title="New file">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+              </button>
+            </div>
           </div>
           <div class="ws-file-tree" id="wsFileTree"></div>
         </div>
@@ -645,6 +647,15 @@
             <input type="text" id="wsFindInput" class="ws-find-input" placeholder="Find in file…" autocomplete="off" />
             <span class="ws-find-count" id="wsFindCount"></span>
             <button class="ws-find-close" id="wsFindClose">✕</button>
+          </div>
+          <!-- search & replace bar (hidden until Ctrl+H) -->
+          <div class="ws-replace-bar" id="wsReplaceBar" style="display:none">
+            <input type="text" id="wsReplaceFind" class="ws-find-input" placeholder="Find…" autocomplete="off" style="max-width:160px" />
+            <input type="text" id="wsReplaceWith" class="ws-find-input" placeholder="Replace with…" autocomplete="off" style="max-width:160px" />
+            <button class="ws-code-ctrl-btn" id="wsReplaceOne">Replace</button>
+            <button class="ws-code-ctrl-btn" id="wsReplaceAll">All</button>
+            <span class="ws-find-count" id="wsReplaceCount"></span>
+            <button class="ws-find-close" id="wsReplaceClose">✕</button>
           </div>
           <div class="ws-code-header">
             <span class="ws-code-filename" id="wsCodeFilename">index.js</span>
@@ -834,6 +845,49 @@
                 <input type="number" class="ws-buildcfg-input" id="bcfgPort" placeholder="3000" style="width:80px" />
               </div>
               <button class="ws-buildcfg-save" id="bcfgSave">Save Configuration</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- WORKSPACE SETTINGS pane -->
+        <div class="ws-editor-pane" id="pane-wssettings">
+          <div class="ws-buildcfg-wrap">
+            <div class="ws-buildcfg-title">⚙️ Workspace Settings</div>
+            <div class="ws-buildcfg-form">
+              <div class="ws-buildcfg-row">
+                <label class="ws-buildcfg-label">Tab Size</label>
+                <select class="ws-buildcfg-input" id="wsCfgTabSize" style="font-family:inherit">
+                  <option value="2">2 spaces</option>
+                  <option value="4">4 spaces</option>
+                  <option value="tab">Tab</option>
+                </select>
+              </div>
+              <div class="ws-buildcfg-row">
+                <label class="ws-buildcfg-label">Font Size</label>
+                <select class="ws-buildcfg-input" id="wsCfgFontSize" style="font-family:inherit">
+                  <option value="11">11</option>
+                  <option value="12" selected>12</option>
+                  <option value="13">13</option>
+                  <option value="14">14</option>
+                  <option value="16">16</option>
+                </select>
+              </div>
+              <div class="ws-buildcfg-row">
+                <label class="ws-buildcfg-label">Minimap</label>
+                <select class="ws-buildcfg-input" id="wsCfgMinimap" style="font-family:inherit">
+                  <option value="on">Enabled</option>
+                  <option value="off">Disabled</option>
+                </select>
+              </div>
+              <div class="ws-buildcfg-row">
+                <label class="ws-buildcfg-label">Auto Save</label>
+                <select class="ws-buildcfg-input" id="wsCfgAutoSave" style="font-family:inherit">
+                  <option value="30">Every 30 seconds</option>
+                  <option value="60">Every 60 seconds</option>
+                  <option value="off">Off</option>
+                </select>
+              </div>
+              <button class="ws-buildcfg-save" id="wsCfgSave">Save Settings</button>
             </div>
           </div>
         </div>
@@ -1052,6 +1106,34 @@
 
   <div id="toastContainer" class="toast-container"></div>
   <canvas id="confettiCanvas" style="position:fixed;inset:0;pointer-events:none;z-index:9999;display:none"></canvas>
+
+  <!-- File tree context menu -->
+  <div class="context-menu" id="fileContextMenu" style="display:none">
+    <div class="ctx-item" id="fcmOpen">📄 Open</div>
+    <div class="ctx-item" id="fcmRename">✏️ Rename</div>
+    <div class="ctx-item" id="fcmCopyPath">🔗 Copy Path</div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item ctx-danger" id="fcmDelete">🗑 Delete</div>
+  </div>
+
+  <!-- Code keyword tooltip -->
+  <div class="code-tooltip" id="codeTooltip" style="display:none">
+    <div class="code-tooltip-title" id="codeTooltipTitle"></div>
+    <div class="code-tooltip-body" id="codeTooltipBody"></div>
+  </div>
+
+  <!-- Onboarding checklist -->
+  <div class="onboarding-card" id="onboardingCard">
+    <div class="onboarding-header">
+      <span class="onboarding-title">🚀 Getting Started</span>
+      <button class="onboarding-close" id="onboardingClose">✕</button>
+    </div>
+    <div class="onboarding-items" id="onboardingItems"></div>
+    <div class="onboarding-footer">
+      <div class="onboarding-prog"><div class="onboarding-prog-fill" id="onboardingProgFill"></div></div>
+      <span id="onboardingPct">0%</span>
+    </div>
+  </div>
 
   <!-- Mobile bottom navigation -->
   <nav class="mobile-bottom-bar" id="mobileBottomBar">

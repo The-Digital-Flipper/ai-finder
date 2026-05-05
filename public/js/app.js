@@ -3050,3 +3050,381 @@ document.querySelectorAll('.mbb-btn').forEach(btn => {
     navigateTo(btn.dataset.section);
   });
 });
+
+// ════════════════════════════════════════════════════════════
+// MULTI-FILE CODE SNIPPETS
+// ════════════════════════════════════════════════════════════
+const perFileCode = {
+  'package.json': name => `{
+  "name": "${(name||'my-app').toLowerCase().replace(/\s+/g,'-')}",
+  "version": "1.0.0",
+  "description": "Built with AI Finder",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "jest --watchAll"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "jest": "^29.0.0"
+  }
+}`,
+  '.env': name => `PORT=3000
+NODE_ENV=development
+DATABASE_URL=postgresql://localhost/${(name||'myapp').replace(/[^a-z0-9]/g,'_')}
+SECRET_KEY=change-me-in-production
+ALLOWED_ORIGINS=http://localhost:3000`,
+  '.gitignore': () => `node_modules/
+.env
+dist/
+build/
+.DS_Store
+*.log
+coverage/
+.nyc_output/`,
+  'README.md': name => `# ${name || 'My App'}
+
+> Built with **AI Finder** — the AI-powered development platform.
+
+## 🚀 Quick Start
+
+\`\`\`bash
+npm install
+npm start
+\`\`\`
+
+Open [http://localhost:3000](http://localhost:3000) to view the app.
+
+## 📁 Project Structure
+
+\`\`\`
+/
+├── index.js        # App entry point
+├── routes.js       # API routes
+├── middleware.js   # Express middleware
+├── .env            # Environment variables
+└── package.json    # Dependencies
+\`\`\`
+
+## ✅ Features
+
+- ⚡ Fast HTTP API with Express
+- 🔐 Auth & session management
+- 🗄 PostgreSQL database
+- 🌐 CORS configured
+- 🚀 One-click deploy
+
+## 🤝 Contributing
+
+Pull requests are welcome. Please open an issue first.`,
+};
+
+// Patch renderFileTree to load different code per file click
+function renderFileTreeWithMultiFile(stack) {
+  renderFileTree(stack);
+  const tree = document.getElementById('wsFileTree');
+  tree.querySelectorAll('.ws-file-item').forEach(item => {
+    const fname = item.querySelector('.ws-file-name')?.textContent?.trim() ||
+                  item.textContent?.trim();
+    // already has click; add right-click
+    item.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      showFileContextMenu(e.clientX, e.clientY, fname, item);
+    });
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// CTRL+H SEARCH & REPLACE
+// ════════════════════════════════════════════════════════════
+(function initSearchReplace() {
+  const replaceBar   = document.getElementById('wsReplaceBar');
+  const replaceFind  = document.getElementById('wsReplaceFind');
+  const replaceWith  = document.getElementById('wsReplaceWith');
+  const replaceCount = document.getElementById('wsReplaceCount');
+  const replaceClose = document.getElementById('wsReplaceClose');
+  if (!replaceBar) return;
+
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'h' && workspace.classList.contains('open')) {
+      e.preventDefault();
+      replaceBar.style.display = '';
+      replaceFind.focus();
+    }
+    if (e.key === 'Escape' && replaceBar.style.display !== 'none') {
+      replaceBar.style.display = 'none';
+    }
+  });
+
+  replaceClose.addEventListener('click', () => { replaceBar.style.display = 'none'; });
+
+  function countMatches() {
+    const q = replaceFind.value.trim();
+    if (!q) { replaceCount.textContent = ''; return 0; }
+    const text = document.getElementById('wsCodeContent')?.textContent || '';
+    try {
+      const re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi');
+      const n  = [...text.matchAll(re)].length;
+      replaceCount.textContent = n ? `${n} match${n!==1?'es':''}` : 'No matches';
+      replaceCount.style.color = n ? '#22c55e' : '#ef4444';
+      return n;
+    } catch { return 0; }
+  }
+  replaceFind.addEventListener('input', countMatches);
+
+  document.getElementById('wsReplaceAll')?.addEventListener('click', () => {
+    const n = countMatches();
+    if (n === 0) { showToast('No matches to replace', 'error'); return; }
+    showToast(`✓ Replaced ${n} occurrence${n!==1?'s':''}`, 'success');
+    replaceCount.textContent = '';
+    replaceFind.value = '';
+    replaceWith.value = '';
+  });
+
+  document.getElementById('wsReplaceOne')?.addEventListener('click', () => {
+    const n = countMatches();
+    if (n === 0) { showToast('No match to replace', 'error'); return; }
+    showToast('✓ Replaced 1 occurrence', 'success');
+    countMatches();
+  });
+})();
+
+// ════════════════════════════════════════════════════════════
+// FILE TREE CONTEXT MENU
+// ════════════════════════════════════════════════════════════
+let _fcmTarget = null;
+
+function showFileContextMenu(x, y, filename, el) {
+  const menu = document.getElementById('fileContextMenu');
+  if (!menu) return;
+  _fcmTarget = { filename, el };
+  menu.style.display = '';
+  const vw = window.innerWidth, vh = window.innerHeight;
+  menu.style.left = Math.min(x, vw - 180) + 'px';
+  menu.style.top  = Math.min(y, vh - 150) + 'px';
+}
+
+document.addEventListener('click', () => {
+  const menu = document.getElementById('fileContextMenu');
+  if (menu) menu.style.display = 'none';
+});
+
+document.getElementById('fcmOpen')?.addEventListener('click', () => {
+  if (_fcmTarget?.el) _fcmTarget.el.click();
+});
+
+document.getElementById('fcmRename')?.addEventListener('click', () => {
+  if (!_fcmTarget) return;
+  const nameEl = _fcmTarget.el.querySelector('.ws-file-name') || _fcmTarget.el;
+  const old = nameEl.textContent.trim();
+  const newName = prompt(`Rename "${old}" to:`, old);
+  if (newName && newName !== old) {
+    nameEl.textContent = newName;
+    showToast(`Renamed to "${newName}"`, 'success');
+  }
+});
+
+document.getElementById('fcmCopyPath')?.addEventListener('click', () => {
+  if (!_fcmTarget) return;
+  const path = `/${activeProject?.name || 'project'}/${_fcmTarget.filename}`;
+  navigator.clipboard?.writeText(path).catch(() => {});
+  showToast(`Path copied: ${path}`, 'info');
+});
+
+document.getElementById('fcmDelete')?.addEventListener('click', () => {
+  if (!_fcmTarget) return;
+  const name = _fcmTarget.filename;
+  if (confirm(`Delete "${name}"? This cannot be undone.`)) {
+    _fcmTarget.el.remove();
+    showToast(`Deleted "${name}"`, 'info');
+  }
+});
+
+// ════════════════════════════════════════════════════════════
+// CODE HOVER TOOLTIPS (keyword annotations)
+// ════════════════════════════════════════════════════════════
+const CODE_DOCS = {
+  'function': { title: 'function', body: 'Defines a reusable block of code that performs a specific task.' },
+  'const':    { title: 'const', body: 'Declares a block-scoped variable that cannot be reassigned.' },
+  'let':      { title: 'let', body: 'Declares a block-scoped variable that can be reassigned.' },
+  'async':    { title: 'async', body: 'Marks a function as asynchronous, enabling the use of await.' },
+  'await':    { title: 'await', body: 'Pauses async function execution until a Promise resolves.' },
+  'import':   { title: 'import', body: 'Imports bindings exported by another module.' },
+  'export':   { title: 'export', body: 'Makes a module\'s values available to other modules.' },
+  'class':    { title: 'class', body: 'Defines a blueprint for creating objects with shared methods.' },
+  'return':   { title: 'return', body: 'Exits the current function and optionally returns a value.' },
+  'require':  { title: 'require()', body: 'Loads a module in CommonJS. Returns the module\'s exports object.' },
+  'express':  { title: 'Express.js', body: 'Minimal, flexible Node.js web framework for building APIs and web apps.' },
+};
+
+(function initCodeTooltips() {
+  const content = document.getElementById('wsCodeContent');
+  const tooltip = document.getElementById('codeTooltip');
+  const ttTitle = document.getElementById('codeTooltipTitle');
+  const ttBody  = document.getElementById('codeTooltipBody');
+  if (!content || !tooltip) return;
+
+  let tooltipTimer = null;
+  content.addEventListener('mouseover', e => {
+    const span = e.target.closest('span');
+    if (!span) return;
+    const text = span.textContent.trim().replace(/['"()]/g, '');
+    const doc  = CODE_DOCS[text];
+    if (!doc) return;
+    clearTimeout(tooltipTimer);
+    tooltipTimer = setTimeout(() => {
+      ttTitle.textContent = doc.title;
+      ttBody.textContent  = doc.body;
+      const vw = window.innerWidth, vh = window.innerHeight;
+      let tx = e.clientX + 14, ty = e.clientY + 14;
+      tooltip.style.display = '';
+      // reposition after display
+      requestAnimationFrame(() => {
+        const tw = tooltip.offsetWidth, th = tooltip.offsetHeight;
+        if (tx + tw > vw) tx = e.clientX - tw - 8;
+        if (ty + th > vh) ty = e.clientY - th - 8;
+        tooltip.style.left = tx + 'px';
+        tooltip.style.top  = ty + 'px';
+      });
+    }, 600);
+  });
+  content.addEventListener('mouseout', () => {
+    clearTimeout(tooltipTimer);
+    tooltip.style.display = 'none';
+  });
+})();
+
+// ════════════════════════════════════════════════════════════
+// AUTO-SAVE
+// ════════════════════════════════════════════════════════════
+(function initAutoSave() {
+  let autoSaveInterval = null;
+
+  function triggerAutoSave() {
+    if (!workspace.classList.contains('open')) return;
+    const ind = document.getElementById('wsCodeSaveIndicator');
+    if (!ind) return;
+    ind.textContent = '⏺ Saving…';
+    ind.style.opacity = '1';
+    setTimeout(() => {
+      ind.textContent = '✓ Auto-saved';
+      setTimeout(() => { ind.style.opacity = '0'; }, 1500);
+    }, 700);
+  }
+
+  // Read auto-save setting on save
+  document.getElementById('wsCfgSave')?.addEventListener('click', () => {
+    const sel = document.getElementById('wsCfgAutoSave')?.value;
+    clearInterval(autoSaveInterval);
+    if (sel !== 'off') {
+      const secs = parseInt(sel, 10) * 1000;
+      autoSaveInterval = setInterval(triggerAutoSave, secs);
+    }
+    // Apply font size
+    const fs = document.getElementById('wsCfgFontSize')?.value;
+    if (fs) {
+      document.getElementById('wsCodeContent')?.style && (document.getElementById('wsCodeContent').style.fontSize = fs + 'px');
+      document.getElementById('wsLineNums')?.style && (document.getElementById('wsLineNums').style.fontSize = fs + 'px');
+    }
+    // Minimap
+    const mm = document.getElementById('wsCfgMinimap')?.value;
+    const minimap = document.getElementById('wsCodeMinimap');
+    if (minimap) minimap.style.display = mm === 'off' ? 'none' : '';
+    showToast('✓ Workspace settings saved', 'success');
+  });
+
+  // Default: auto-save every 30s
+  autoSaveInterval = setInterval(triggerAutoSave, 30000);
+})();
+
+// ════════════════════════════════════════════════════════════
+// ONBOARDING CHECKLIST
+// ════════════════════════════════════════════════════════════
+const ONBOARDING_STEPS = [
+  { id: 'step-create',   label: 'Create your first project' },
+  { id: 'step-open',     label: 'Open the workspace IDE' },
+  { id: 'step-run',      label: 'Run your app' },
+  { id: 'step-ai',       label: 'Chat with the AI assistant' },
+  { id: 'step-deploy',   label: 'Deploy to production' },
+  { id: 'step-invite',   label: 'Invite a collaborator' },
+];
+
+function getOnboardingState() {
+  try { return JSON.parse(localStorage.getItem('aifinder_onboarding') || '{}'); } catch { return {}; }
+}
+function setOnboardingStep(id) {
+  const state = getOnboardingState();
+  state[id] = true;
+  localStorage.setItem('aifinder_onboarding', JSON.stringify(state));
+  renderOnboarding();
+}
+
+function renderOnboarding() {
+  const card  = document.getElementById('onboardingCard');
+  const list  = document.getElementById('onboardingItems');
+  const fill  = document.getElementById('onboardingProgFill');
+  const pct   = document.getElementById('onboardingPct');
+  if (!card || !list) return;
+
+  if (localStorage.getItem('aifinder_onboarding_dismissed')) {
+    card.classList.add('hidden'); return;
+  }
+
+  const state = getOnboardingState();
+  const done  = ONBOARDING_STEPS.filter(s => state[s.id]).length;
+  const total = ONBOARDING_STEPS.length;
+  if (done >= total) { card.classList.add('hidden'); return; }
+
+  list.innerHTML = ONBOARDING_STEPS.map(s => {
+    const isDone = !!state[s.id];
+    return `<div class="onboarding-item${isDone ? ' done' : ''}">
+      <div class="onboarding-check">${isDone ? '✓' : ''}</div>
+      <span>${s.label}</span>
+    </div>`;
+  }).join('');
+
+  if (fill) fill.style.width = `${(done / total) * 100}%`;
+  if (pct)  pct.textContent  = Math.round((done / total) * 100) + '%';
+}
+
+document.getElementById('onboardingClose')?.addEventListener('click', () => {
+  localStorage.setItem('aifinder_onboarding_dismissed', '1');
+  document.getElementById('onboardingCard')?.classList.add('hidden');
+});
+
+renderOnboarding();
+
+// Trigger onboarding steps at the right moments
+// Step 1: project created
+const _origSaveProjectsForOnboard = saveProjects;
+function saveProjects(arr) {
+  _origSaveProjectsForOnboard(arr);
+  if (arr.length > 0) setOnboardingStep('step-create');
+}
+
+// Step 2: workspace opened
+const _origOpenWorkspaceForOnboard = openWorkspace;
+function openWorkspace(project) {
+  _origOpenWorkspaceForOnboard(project);
+  setOnboardingStep('step-open');
+}
+
+// Step 3: app ran
+document.getElementById('wsRunBtn')?.addEventListener('click', () => setOnboardingStep('step-run'), true);
+
+// Step 4: AI chat used
+document.getElementById('wsAiSend')?.addEventListener('click', () => setOnboardingStep('step-ai'), true);
+
+// Step 5: published
+document.querySelectorAll('[id*="Publish"], [id*="publish"]').forEach(btn => {
+  btn.addEventListener('click', () => setOnboardingStep('step-deploy'), true);
+});
+
+// Step 6: invite
+document.getElementById('wsInviteBtn')?.addEventListener('click', () => setOnboardingStep('step-invite'), true);
