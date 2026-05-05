@@ -1605,3 +1605,195 @@ document.getElementById('projectsGrid').addEventListener('dblclick', e => {
   const _origOpen = openToolsPanel;
   openToolsPanel = function(...args) { _origOpen(...args); focusIdx = -1; };
 })();
+
+// ════════════════════════════════════════════════════════════
+// MOBILE HAMBURGER
+// ════════════════════════════════════════════════════════════
+(function initMobileNav() {
+  const sidebar  = document.getElementById('sidebar');
+  const overlay  = document.getElementById('sidebarOverlay');
+  const hamburger= document.getElementById('hamburgerBtn');
+  if (!hamburger) return;
+
+  hamburger.addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('visible');
+  });
+  overlay.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('visible');
+  });
+  // close on nav item click (mobile)
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.addEventListener('click', () => {
+      if (window.innerWidth <= 768) {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('visible');
+      }
+    });
+  });
+})();
+
+// ════════════════════════════════════════════════════════════
+// ROTATING PLACEHOLDER IN PROMPT
+// ════════════════════════════════════════════════════════════
+(function initRotatingPlaceholder() {
+  const textarea = document.getElementById('promptInput');
+  if (!textarea) return;
+  const placeholders = [
+    'Describe your idea, Replit will bring it to life...',
+    'Build a full-stack e-commerce site with React and Node.js',
+    'Create a Discord bot that tracks server analytics',
+    'Build a real-time chat app with WebSockets',
+    'Create a Python scraper for product prices',
+    'Build a REST API with authentication and rate limiting',
+    'Create a dashboard to visualize CSV data',
+    'Build a CLI tool to automate file organization',
+    'Create a browser extension that saves reading lists',
+    'Build a multiplayer game with Socket.io',
+  ];
+  let idx = 0;
+  setInterval(() => {
+    if (document.activeElement !== textarea) {
+      idx = (idx + 1) % placeholders.length;
+      textarea.style.transition = 'opacity 0.35s';
+      textarea.style.opacity = '0';
+      setTimeout(() => {
+        textarea.setAttribute('placeholder', placeholders[idx]);
+        textarea.style.opacity = '1';
+      }, 350);
+    }
+  }, 5000);
+})();
+
+// ════════════════════════════════════════════════════════════
+// CODE EDITOR CONTROLS (copy, font size, word wrap)
+// ════════════════════════════════════════════════════════════
+(function initCodeControls() {
+  let fontSize = 12;
+  let wordWrap = false;
+
+  document.getElementById('wsCodeCopyBtn')?.addEventListener('click', function () {
+    const code = document.getElementById('wsCodeContent')?.textContent || '';
+    navigator.clipboard?.writeText(code).catch(() => {});
+    this.textContent = '✓ Copied!';
+    setTimeout(() => { this.textContent = '⎘ Copy'; }, 1800);
+  });
+
+  document.getElementById('wsFontIncBtn')?.addEventListener('click', () => {
+    fontSize = Math.min(fontSize + 1, 20);
+    const c = document.getElementById('wsCodeContent');
+    const n = document.getElementById('wsLineNums');
+    if (c) c.style.fontSize = `${fontSize}px`;
+    if (n) n.style.fontSize = `${fontSize}px`;
+  });
+
+  document.getElementById('wsFontDecBtn')?.addEventListener('click', () => {
+    fontSize = Math.max(fontSize - 1, 9);
+    const c = document.getElementById('wsCodeContent');
+    const n = document.getElementById('wsLineNums');
+    if (c) c.style.fontSize = `${fontSize}px`;
+    if (n) n.style.fontSize = `${fontSize}px`;
+  });
+
+  document.getElementById('wsWordWrapBtn')?.addEventListener('click', function () {
+    wordWrap = !wordWrap;
+    const c = document.getElementById('wsCodeContent');
+    if (c) c.style.whiteSpace = wordWrap ? 'pre-wrap' : 'pre';
+    this.classList.toggle('active', wordWrap);
+  });
+})();
+
+// ════════════════════════════════════════════════════════════
+// FAVOURITE STARS ON PROJECT CARDS
+// ════════════════════════════════════════════════════════════
+function getStarred() {
+  try { return JSON.parse(localStorage.getItem('aifinder_starred') || '[]'); } catch { return []; }
+}
+function toggleStar(id) {
+  let starred = getStarred();
+  if (starred.includes(id)) {
+    starred = starred.filter(s => s !== id);
+  } else {
+    starred.push(id);
+  }
+  localStorage.setItem('aifinder_starred', JSON.stringify(starred));
+  return starred.includes(id);
+}
+
+// patch renderProjects to add star buttons and support 'starred' tab
+const _origRenderProjectsForStar = renderProjects;
+function renderProjects(filter) {
+  _origRenderProjectsForStar(filter);
+  const starred = getStarred();
+  // add star buttons to each card
+  document.querySelectorAll('.project-card').forEach(card => {
+    if (card.querySelector('.card-star-btn')) return;
+    const nameEl = card.querySelector('.project-name');
+    if (!nameEl) return;
+    const name = nameEl.textContent;
+    const project = getProjects().find(p => p.name === name);
+    if (!project) return;
+    const starBtn = document.createElement('button');
+    starBtn.className = 'card-star-btn' + (starred.includes(project.id) ? ' active' : '');
+    starBtn.innerHTML = '⭐';
+    starBtn.title = 'Favourite';
+    starBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      const isNowStarred = toggleStar(project.id);
+      starBtn.classList.toggle('active', isNowStarred);
+      showToast(isNowStarred ? `⭐ Added to favourites` : `Removed from favourites`, 'info');
+    });
+    const actions = card.querySelector('.project-card-actions');
+    if (actions) actions.insertBefore(starBtn, actions.firstChild);
+  });
+}
+
+// support 'starred' tab
+const _origTabBtns = document.querySelectorAll('.tab[data-tab]');
+_origTabBtns.forEach(btn => {
+  if (btn.dataset.tab === 'starred') {
+    btn.addEventListener('click', () => {
+      const grid = document.getElementById('projectsGrid');
+      const starred = getStarred();
+      const projects = getProjects().filter(p => starred.includes(p.id));
+      grid.innerHTML = '';
+      if (projects.length === 0) {
+        grid.innerHTML = `<div class="projects-empty"><div class="projects-empty-icon">⭐</div><p>No favourites yet</p><span>Click the ⭐ on any project to add it here</span></div>`;
+        return;
+      }
+      projects.forEach((p, i) => {
+        const card = document.createElement('div');
+        card.className = 'project-card';
+        card.style.animationDelay = `${i * 0.045}s`;
+        card.innerHTML = `<div class="project-card-icon" style="background:${p.bg}">${p.icon}</div><div class="project-card-info"><div class="project-name">${p.name}</div><div class="project-meta">${p.stack} · ${p.updatedAt}</div></div><div class="project-card-actions"><button class="card-star-btn active" title="Favourite">⭐</button></div>`;
+        card.addEventListener('click', () => openBuildModal(`Opening ${p.name}…`, p));
+        grid.appendChild(card);
+      });
+    });
+  }
+});
+
+// ════════════════════════════════════════════════════════════
+// SEARCH RESULT TEXT HIGHLIGHTING
+// ════════════════════════════════════════════════════════════
+function hlMatch(text, q) {
+  if (!q) return text;
+  const i = text.toLowerCase().indexOf(q.toLowerCase());
+  if (i === -1) return text;
+  return text.slice(0, i) + `<mark>${text.slice(i, i + q.length)}</mark>` + text.slice(i + q.length);
+}
+
+// Re-patch the project search to add highlighting
+document.getElementById('projectsSearch').addEventListener('input', function () {
+  const q = this.value.toLowerCase().trim();
+  if (!q) return; // base handler already ran; let the previously attached handler handle reset
+  const grid = document.getElementById('projectsGrid');
+  // add highlighting to existing rendered cards
+  grid.querySelectorAll('.project-card').forEach(card => {
+    const nameEl = card.querySelector('.project-name');
+    const metaEl = card.querySelector('.project-meta');
+    if (nameEl && !nameEl.querySelector('input')) nameEl.innerHTML = hlMatch(nameEl.textContent, q);
+    if (metaEl) metaEl.innerHTML = hlMatch(metaEl.textContent, q);
+  });
+});
