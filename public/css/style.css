@@ -3074,3 +3074,114 @@ body.light-mode *::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.18); }
   cursor: pointer; transition: background 0.15s;
 }
 .btn-secondary:hover { background: var(--bg4); color: var(--text); }
+
+/* ══════════════════════════════
+   LEARN SECTION ENHANCED
+══════════════════════════════ */
+.learn-progress-summary {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 13px; color: var(--text-muted);
+  margin-bottom: 16px;
+}
+.learn-prog-bar {
+  width: 140px; height: 5px;
+  background: var(--bg3); border-radius: 3px; overflow: hidden;
+}
+.learn-prog-fill {
+  height: 100%; border-radius: 3px;
+  background: var(--accent);
+  transition: width 0.4s ease;
+}
+.learn-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.learn-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px;
+  display: flex; flex-direction: column; gap: 8px;
+  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+  animation: cardFadeIn 0.2s ease both;
+  cursor: pointer;
+}
+.learn-card:hover { border-color: var(--border2); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.25); }
+.learn-card.completed { border-color: rgba(34,197,94,0.35); background: rgba(34,197,94,0.04); }
+.learn-icon { font-size: 28px; }
+.learn-card h4 { font-size: 14px; font-weight: 700; color: var(--text); margin: 0; display: flex; align-items: center; gap: 6px; }
+.learn-check { color: #22c55e; font-size: 16px; }
+.learn-card p { font-size: 12px; color: var(--text-muted); line-height: 1.5; margin: 0; flex: 1; }
+.learn-card-footer {
+  display: flex; align-items: center; justify-content: space-between; margin-top: 4px;
+}
+.learn-difficulty {
+  padding: 2px 8px; border-radius: 10px; font-size: 9px; font-weight: 700; text-transform: uppercase;
+}
+.learn-difficulty.beginner { background: rgba(34,197,94,0.12); color: #22c55e; }
+.learn-difficulty.intermediate { background: rgba(251,191,36,0.12); color: #fbbf24; }
+.learn-difficulty.advanced { background: rgba(239,68,68,0.1); color: #f87171; }
+.learn-duration { font-size: 10px; color: var(--text-dim); }
+.learn-start-btn {
+  margin-top: 4px; padding: 6px 0;
+  background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2);
+  border-radius: var(--radius-sm);
+  color: var(--accent); font-size: 11px; font-weight: 600; font-family: inherit;
+  cursor: pointer; transition: background 0.15s;
+}
+.learn-start-btn:hover { background: rgba(59,130,246,0.2); }
+.learn-card.completed .learn-start-btn {
+  background: rgba(34,197,94,0.1); border-color: rgba(34,197,94,0.2); color: #22c55e;
+}
+
+/* ══════════════════════════════
+   CODE MINIMAP
+══════════════════════════════ */
+.ws-minimap {
+  width: 56px; flex-shrink: 0;
+  background: #141414;
+  border-left: 1px solid rgba(255,255,255,0.04);
+  overflow: hidden;
+  padding: 4px 6px;
+  display: flex; flex-direction: column; gap: 1px;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+.ws-minimap:hover { opacity: 1; }
+.mm-line { height: 2px; border-radius: 1px; }
+
+/* ══════════════════════════════
+   AI MODEL SELECTOR
+══════════════════════════════ */
+.ws-ai-model-sel {
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted); font-size: 10px; font-family: inherit;
+  padding: 2px 6px; outline: none; cursor: pointer;
+  transition: border-color 0.15s;
+}
+.ws-ai-model-sel:focus { border-color: rgba(167,139,250,0.4); color: var(--text); }
+
+/* ══════════════════════════════
+   MOBILE BOTTOM BAR
+══════════════════════════════ */
+.mobile-bottom-bar {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 200;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  padding: 6px 0;
+  justify-content: space-around;
+}
+.mbb-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  background: none; border: none;
+  color: var(--text-dim); font-size: 9px; font-family: inherit;
+  cursor: pointer; padding: 4px 12px;
+  transition: color 0.15s;
+  min-width: 56px;
+}
+.mbb-btn svg { width: 20px; height: 20px; }
+.mbb-btn.active { color: var(--accent); }
+.mbb-btn:hover  { color: var(--text); }
+@media (max-width: 768px) {
+  .mobile-bottom-bar { display: flex; }
+  .main { padding-bottom: 64px; }
+}

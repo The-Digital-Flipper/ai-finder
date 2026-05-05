@@ -2891,3 +2891,162 @@ function openWorkspace(project) {
   _origOpenWorkspaceForRecent(project);
   trackRecentProject(project);
 }
+
+// ════════════════════════════════════════════════════════════
+// ENHANCED LEARN SECTION
+// ════════════════════════════════════════════════════════════
+const LESSONS = [
+  { icon:'🚀', title:'Getting Started', desc:'Set up your first project in under 5 minutes.', difficulty:'beginner', duration:'5 min' },
+  { icon:'🌐', title:'Web Development', desc:'HTML, CSS, JavaScript, React, Node.js — all in one place.', difficulty:'beginner', duration:'30 min' },
+  { icon:'🐍', title:'Python Basics', desc:'Variables, functions, loops, and real projects.', difficulty:'beginner', duration:'45 min' },
+  { icon:'🤖', title:'AI & Machine Learning', desc:'Build with OpenAI, HuggingFace, and LangChain.', difficulty:'intermediate', duration:'1 hr' },
+  { icon:'🔌', title:'APIs & Databases', desc:'Connect your app to the world with REST and SQL.', difficulty:'intermediate', duration:'1 hr' },
+  { icon:'📦', title:'Deployment', desc:'Ship your project to a live URL in one click.', difficulty:'beginner', duration:'15 min' },
+  { icon:'⚡', title:'Performance Optimization', desc:'Make your app blazing fast with caching and CDN.', difficulty:'advanced', duration:'1.5 hr' },
+  { icon:'🔒', title:'Security Best Practices', desc:'Protect your app from common vulnerabilities.', difficulty:'intermediate', duration:'45 min' },
+];
+
+function getLearnProgress() {
+  try { return JSON.parse(localStorage.getItem('aifinder_learn') || '[]'); } catch { return []; }
+}
+function saveLearnProgress(arr) { localStorage.setItem('aifinder_learn', JSON.stringify(arr)); }
+
+function renderLearnSection() {
+  const grid = document.getElementById('learnGrid');
+  if (!grid) return;
+  const completed = getLearnProgress();
+  grid.innerHTML = '';
+  LESSONS.forEach((lesson, i) => {
+    const isDone = completed.includes(i);
+    const card = document.createElement('div');
+    card.className = `learn-card${isDone ? ' completed' : ''}`;
+    card.style.animationDelay = `${i * 0.05}s`;
+    card.innerHTML = `
+      <div class="learn-icon">${lesson.icon}</div>
+      <h4>${lesson.title}${isDone ? ' <span class="learn-check">✓</span>' : ''}</h4>
+      <p>${lesson.desc}</p>
+      <div class="learn-card-footer">
+        <span class="learn-difficulty ${lesson.difficulty}">${lesson.difficulty}</span>
+        <span class="learn-duration">⏱ ${lesson.duration}</span>
+      </div>
+      <button class="learn-start-btn">${isDone ? '✓ Completed' : 'Start Lesson →'}</button>`;
+    card.querySelector('.learn-start-btn').addEventListener('click', e => {
+      e.stopPropagation();
+      if (!isDone) {
+        const prog = getLearnProgress();
+        prog.push(i);
+        saveLearnProgress(prog);
+        showToast(`🎉 "${lesson.title}" completed!`, 'success');
+        renderLearnSection();
+        updateLearnProgress();
+      }
+    });
+    grid.appendChild(card);
+  });
+  updateLearnProgress();
+}
+
+function updateLearnProgress() {
+  const completed = getLearnProgress();
+  const total = LESSONS.length;
+  const done  = completed.length;
+  const doneEl  = document.getElementById('learnDoneCount');
+  const totalEl = document.getElementById('learnTotalCount');
+  const fill    = document.getElementById('learnProgFill');
+  if (doneEl)  doneEl.textContent = done;
+  if (totalEl) totalEl.textContent = total;
+  if (fill)    fill.style.width = `${(done / total) * 100}%`;
+}
+renderLearnSection();
+
+// ════════════════════════════════════════════════════════════
+// CODE MINIMAP RENDERER
+// ════════════════════════════════════════════════════════════
+function renderMinimap(stack) {
+  const minimap = document.getElementById('wsCodeMinimap');
+  if (!minimap) return;
+  const code = codeTemplates[stack] || '';
+  const lines = code.split('\n');
+  const colors = {
+    comment:  '#444',
+    keyword:  '#569cd6',
+    string:   '#ce9178',
+    function: '#4ec9b0',
+    blank:    'transparent',
+    normal:   '#555',
+  };
+  minimap.innerHTML = lines.slice(0, 100).map(line => {
+    const t = line.trim();
+    let color = colors.normal;
+    if (!t) color = colors.blank;
+    else if (t.startsWith('//') || t.startsWith('#'))  color = colors.comment;
+    else if (/\b(function|const|let|var|def|class|import|from|return|if|for|while)\b/.test(t)) color = colors.keyword;
+    else if (/'.*'|".*"/.test(t)) color = colors.string;
+    const w = Math.min(44, Math.max(4, Math.round(t.length * 0.4)));
+    return `<div class="mm-line" style="width:${w}px;background:${color}"></div>`;
+  }).join('');
+}
+
+// patch loadCode to also render minimap
+const _loadCodeForMinimap = loadCode;
+function loadCode(stack) {
+  _loadCodeForMinimap(stack);
+  setTimeout(() => renderMinimap(stack), 60);
+}
+
+// ════════════════════════════════════════════════════════════
+// CODE FORMATTER BUTTON
+// ════════════════════════════════════════════════════════════
+document.getElementById('wsFormatBtn')?.addEventListener('click', function () {
+  this.textContent = '…';
+  this.disabled = true;
+  setTimeout(() => {
+    this.textContent = '✓';
+    this.disabled = false;
+    // Re-render code (just triggers a visual reload)
+    if (activeProject) loadCode(activeProject.stack);
+    const ind = document.getElementById('wsCodeSaveIndicator');
+    if (ind) { ind.textContent = '✓ Formatted'; ind.style.opacity = '1'; clearTimeout(ind._timer); ind._timer = setTimeout(() => { ind.style.opacity = '0'; this.textContent = '{ }'; }, 2000); }
+  }, 700);
+});
+
+// ════════════════════════════════════════════════════════════
+// AI MODEL SELECTOR
+// ════════════════════════════════════════════════════════════
+document.getElementById('wsAiModelSel')?.addEventListener('change', function () {
+  const names = { gpt4o:'GPT-4o', gpt4:'GPT-4 Turbo', claude3:'Claude 3.5', gemini:'Gemini 1.5', llama:'Llama 3.3' };
+  showToast(`AI model switched to ${names[this.value] || this.value}`, 'info');
+});
+
+// ════════════════════════════════════════════════════════════
+// EXPORT PROJECT (simulated ZIP)
+// ════════════════════════════════════════════════════════════
+document.getElementById('wsExportBtn')?.addEventListener('click', () => {
+  const btn = document.getElementById('wsExportBtn');
+  showToast('Bundling project…', 'info');
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.disabled = false;
+    const projectName = activeProject?.name || 'project';
+    const code = codeTemplates[activeProject?.stack || 'Node.js'] || '';
+    const blob = new Blob([code], { type: 'text/plain' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url;
+    a.download = `${projectName}.zip.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast(`✓ ${projectName} exported`, 'success');
+  }, 1200);
+});
+
+// ════════════════════════════════════════════════════════════
+// MOBILE BOTTOM BAR NAV
+// ════════════════════════════════════════════════════════════
+document.querySelectorAll('.mbb-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.mbb-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    navigateTo(btn.dataset.section);
+  });
+});
