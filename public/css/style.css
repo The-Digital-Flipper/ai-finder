@@ -2952,3 +2952,125 @@ body.light-mode *::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.18); }
 ══════════════════════════════ */
 .ws-gutter-error { color: #ef4444; font-size: 9px; cursor: default; }
 .ws-gutter-warn  { color: #fbbf24; font-size: 9px; cursor: default; }
+
+/* ══════════════════════════════
+   WHAT'S NEW BANNER
+══════════════════════════════ */
+.whats-new-banner {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 20px;
+  background: linear-gradient(90deg, rgba(139,92,246,0.12) 0%, rgba(59,130,246,0.08) 100%);
+  border-bottom: 1px solid rgba(139,92,246,0.2);
+  font-size: 13px; color: var(--text-muted);
+  animation: cardFadeIn 0.4s ease;
+}
+.whats-new-banner.hidden { display: none; }
+.whats-new-icon { font-size: 16px; flex-shrink: 0; }
+.whats-new-text { flex: 1; }
+.whats-new-text strong { color: var(--text); }
+.whats-new-close {
+  background: none; border: none; color: var(--text-dim);
+  cursor: pointer; font-size: 14px; padding: 2px 4px;
+  transition: color 0.12s; flex-shrink: 0;
+}
+.whats-new-close:hover { color: var(--text); }
+
+/* ══════════════════════════════
+   SECTION TRANSITIONS
+══════════════════════════════ */
+.section {
+  transition: opacity 0.2s ease;
+}
+.section:not(.active) { display: none; }
+.section.fade-in { animation: cardFadeIn 0.22s ease; }
+
+/* ══════════════════════════════
+   DOCS SEARCH
+══════════════════════════════ */
+.docs-search-wrap {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  max-width: 400px; margin-bottom: 16px;
+  transition: border-color 0.15s;
+}
+.docs-search-wrap:focus-within { border-color: var(--accent); }
+.docs-search-input {
+  flex: 1; background: none; border: none; outline: none;
+  font-size: 13px; color: var(--text); font-family: inherit;
+}
+.doc-item.hidden { display: none; }
+
+/* ══════════════════════════════
+   TEMPLATES GALLERY
+══════════════════════════════ */
+.template-filter-tabs {
+  display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap;
+}
+.tpl-tab {
+  padding: 5px 14px;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--text-muted); font-size: 12px; font-weight: 500; font-family: inherit;
+  cursor: pointer; transition: all 0.15s;
+}
+.tpl-tab:hover { color: var(--text); border-color: var(--border2); }
+.tpl-tab.active {
+  background: rgba(59,130,246,0.12);
+  border-color: rgba(59,130,246,0.3);
+  color: var(--accent);
+}
+.tpl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+.tpl-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+  animation: cardFadeIn 0.2s ease both;
+}
+.tpl-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+.tpl-card-banner {
+  height: 80px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px;
+}
+.tpl-card-body { padding: 12px 14px; }
+.tpl-card-name { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.tpl-card-meta { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; }
+.tpl-card-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
+.tpl-card-tag {
+  padding: 1px 7px; border-radius: 10px;
+  font-size: 9px; font-weight: 700; text-transform: uppercase;
+}
+.tpl-card-use {
+  width: 100%; padding: 7px;
+  background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2);
+  border-radius: var(--radius-sm);
+  color: var(--accent); font-size: 12px; font-weight: 600; font-family: inherit;
+  cursor: pointer; transition: background 0.15s;
+}
+.tpl-card-use:hover { background: rgba(59,130,246,0.22); }
+
+/* ══════════════════════════════
+   BUILD LOG DOWNLOAD BUTTON
+══════════════════════════════ */
+.btn-secondary {
+  padding: 9px 16px;
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted); font-size: 13px; font-weight: 500; font-family: inherit;
+  cursor: pointer; transition: background 0.15s;
+}
+.btn-secondary:hover { background: var(--bg4); color: var(--text); }

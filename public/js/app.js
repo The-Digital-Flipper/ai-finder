@@ -2698,3 +2698,196 @@ function loadCode(stack) {
   });
   observer.observe(workspace, { attributes: true, attributeFilter: ['class'] });
 })();
+
+// ════════════════════════════════════════════════════════════
+// WHAT'S NEW BANNER
+// ════════════════════════════════════════════════════════════
+(function initWhatsNew() {
+  const banner = document.getElementById('whatsNewBanner');
+  const close  = document.getElementById('closeWhatsNew');
+  if (!banner) return;
+  if (localStorage.getItem('aifinder_whatsnew_dismissed')) banner.classList.add('hidden');
+  close?.addEventListener('click', () => {
+    banner.classList.add('hidden');
+    localStorage.setItem('aifinder_whatsnew_dismissed', '1');
+  });
+})();
+
+// ════════════════════════════════════════════════════════════
+// SECTION FADE TRANSITIONS
+// ════════════════════════════════════════════════════════════
+const _origNavigateTo = navigateTo;
+function navigateTo(sectionId) {
+  _origNavigateTo(sectionId);
+  const activeSection = document.getElementById(`section-${sectionId}`);
+  if (activeSection) {
+    activeSection.classList.remove('fade-in');
+    void activeSection.offsetWidth; // reflow
+    activeSection.classList.add('fade-in');
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// DOCS SEARCH FILTER
+// ════════════════════════════════════════════════════════════
+document.getElementById('docsSearch')?.addEventListener('input', function () {
+  const q = this.value.toLowerCase().trim();
+  document.querySelectorAll('#docList .doc-item').forEach(item => {
+    const title = item.dataset.title?.toLowerCase() || item.textContent.toLowerCase();
+    item.classList.toggle('hidden', q.length > 0 && !title.includes(q));
+  });
+});
+
+// ════════════════════════════════════════════════════════════
+// TEMPLATES GALLERY
+// ════════════════════════════════════════════════════════════
+const TEMPLATES = [
+  { icon:'🌐', name:'Full-Stack Web App',   meta:'React + Node.js + Express', stack:'React',  tags:['frontend','backend'], prompt:'Build a full-stack web app with React and Node.js', bg:'#1e3a5f' },
+  { icon:'🔌', name:'REST API',             meta:'Python + Flask + SQLite',   stack:'Python', tags:['backend','api'],      prompt:'Create a Python Flask REST API with SQLite database', bg:'#1a3326' },
+  { icon:'🤖', name:'Discord Bot',          meta:'discord.js + Node.js',      stack:'Node.js',tags:['bot','discord'],      prompt:'Build a Discord bot with slash commands and moderation', bg:'#1e2151' },
+  { icon:'✨', name:'AI Chatbot',           meta:'OpenAI + Streaming',         stack:'Node.js',tags:['ai','chatbot'],       prompt:'Create an AI chatbot with streaming responses and memory', bg:'#2d1b4e' },
+  { icon:'📱', name:'Telegram Bot',         meta:'telegraf + Node.js',         stack:'Node.js',tags:['bot','telegram'],     prompt:'Build a Telegram bot with inline keyboards', bg:'#0a2d42' },
+  { icon:'📊', name:'Analytics Dashboard',  meta:'Chart.js + Express',         stack:'Node.js',tags:['frontend','data'],    prompt:'Create a data dashboard with charts and real-time updates', bg:'#2d1a00' },
+  { icon:'🛒', name:'E-commerce Store',     meta:'React + Stripe + Node.js',   stack:'React',  tags:['frontend','payments'],prompt:'Build a full e-commerce store with cart and Stripe', bg:'#1a2530' },
+  { icon:'🐍', name:'Data Analysis Tool',   meta:'Python + pandas + Flask',    stack:'Python', tags:['python','data'],      prompt:'Create a Python data analysis web app with charts', bg:'#1a2a1a' },
+  { icon:'⚡', name:'Go REST API',          meta:'Go + Gin + PostgreSQL',       stack:'Go',     tags:['backend','go'],       prompt:'Build a fast REST API with Go, Gin and PostgreSQL', bg:'#0d2230' },
+  { icon:'🎮', name:'Multiplayer Game',     meta:'Socket.io + Node.js',        stack:'Node.js',tags:['realtime','game'],    prompt:'Build a real-time multiplayer game with WebSockets', bg:'#2a1a2e' },
+  { icon:'📝', name:'Blog CMS',            meta:'React + MDX + Node.js',       stack:'React',  tags:['frontend','cms'],     prompt:'Create a blog CMS with markdown editor and preview', bg:'#1e2030' },
+  { icon:'🔧', name:'CLI Tool',            meta:'Node.js + Commander',         stack:'Node.js',tags:['cli','tool'],         prompt:'Build a CLI tool with argument parsing in Node.js', bg:'#202020' },
+];
+
+const TAG_COLORS = {
+  frontend:['#22d3ee','rgba(34,211,238,0.12)'], backend:['#22c55e','rgba(34,197,94,0.12)'],
+  api:['#60a5fa','rgba(96,165,250,0.12)'], bot:['#a78bfa','rgba(167,139,250,0.12)'],
+  discord:['#818cf8','rgba(129,140,248,0.12)'], telegram:['#38bdf8','rgba(56,189,248,0.12)'],
+  ai:['#f472b6','rgba(244,114,182,0.12)'], chatbot:['#c084fc','rgba(192,132,252,0.12)'],
+  data:['#fbbf24','rgba(251,191,36,0.12)'], python:['#4ade80','rgba(74,222,128,0.12)'],
+  go:['#22d3ee','rgba(34,211,238,0.12)'], realtime:['#fb923c','rgba(251,146,60,0.12)'],
+  game:['#f87171','rgba(248,113,113,0.12)'], payments:['#4ade80','rgba(74,222,128,0.12)'],
+  cms:['#818cf8','rgba(129,140,248,0.12)'], cli:['#94a3b8','rgba(148,163,184,0.12)'],
+  tool:['#94a3b8','rgba(148,163,184,0.12)'],
+};
+
+function renderTemplatesGallery(filter) {
+  const grid = document.getElementById('tplGrid');
+  if (!grid) return;
+  const toShow = filter === 'all' ? TEMPLATES
+    : TEMPLATES.filter(t => t.stack === filter || t.tags.includes(filter));
+  grid.innerHTML = '';
+  toShow.forEach((tpl, i) => {
+    const card = document.createElement('div');
+    card.className = 'tpl-card';
+    card.style.animationDelay = `${i * 0.04}s`;
+    const tagHtml = tpl.tags.map(tag => {
+      const [c, bg] = TAG_COLORS[tag] || ['#94a3b8','rgba(148,163,184,0.12)'];
+      return `<span class="tpl-card-tag" style="background:${bg};color:${c}">${tag}</span>`;
+    }).join('');
+    card.innerHTML = `
+      <div class="tpl-card-banner" style="background:${tpl.bg}">${tpl.icon}</div>
+      <div class="tpl-card-body">
+        <div class="tpl-card-name">${tpl.name}</div>
+        <div class="tpl-card-meta">${tpl.meta}</div>
+        <div class="tpl-card-tags">${tagHtml}</div>
+        <button class="tpl-card-use">Use Template →</button>
+      </div>`;
+    card.querySelector('.tpl-card-use').addEventListener('click', e => {
+      e.stopPropagation();
+      document.getElementById('promptInput').value = tpl.prompt;
+      document.getElementById('promptCharCount').textContent = tpl.prompt.length;
+      navigateTo('home');
+      document.getElementById('promptInput').focus();
+      showToast(`Template loaded: ${tpl.name}`, 'success');
+    });
+    grid.appendChild(card);
+  });
+}
+
+document.querySelectorAll('.tpl-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tpl-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderTemplatesGallery(btn.dataset.stack);
+  });
+});
+renderTemplatesGallery('all');
+
+// ════════════════════════════════════════════════════════════
+// BUILD LOG DOWNLOAD
+// ════════════════════════════════════════════════════════════
+document.getElementById('downloadBuildLog')?.addEventListener('click', () => {
+  const lines = [...document.querySelectorAll('#buildTerminal .terminal-line')]
+    .map(l => l.textContent).join('\n');
+  const blob = new Blob([lines], { type: 'text/plain' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = `build-log-${Date.now()}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Build log downloaded', 'info');
+});
+
+// ════════════════════════════════════════════════════════════
+// CONFETTI ON BUILD SUCCESS
+// ════════════════════════════════════════════════════════════
+function launchConfetti() {
+  const canvas = document.getElementById('confettiCanvas');
+  if (!canvas) return;
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  canvas.style.display = '';
+  const ctx = canvas.getContext('2d');
+  const pieces = [];
+  const COLORS = ['#3b82f6','#8b5cf6','#22c55e','#fbbf24','#ec4899','#f97316'];
+  for (let i = 0; i < 90; i++) {
+    pieces.push({
+      x: Math.random() * canvas.width,
+      y: -10 - Math.random() * 100,
+      r: 4 + Math.random() * 5,
+      d: 2 + Math.random() * 3,
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      tilt: Math.random() * 10 - 5,
+      tiltAngle: Math.random() * Math.PI * 2,
+      tiltAngleInc: 0.05 + Math.random() * 0.1,
+    });
+  }
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach(p => {
+      ctx.beginPath();
+      ctx.fillStyle = p.color;
+      ctx.ellipse(p.x, p.y, p.r, p.r * 0.6, p.tilt, 0, Math.PI * 2);
+      ctx.fill();
+      p.y += p.d;
+      p.tilt += Math.sin(p.tiltAngle) * 0.5;
+      p.tiltAngle += p.tiltAngleInc;
+    });
+    frame++;
+    if (frame < 180) requestAnimationFrame(draw);
+    else { canvas.style.display = 'none'; ctx.clearRect(0, 0, canvas.width, canvas.height); }
+  }
+  requestAnimationFrame(draw);
+}
+
+// hook into openProjectBtn click
+document.getElementById('openProjectBtn')?.addEventListener('click', launchConfetti);
+
+// ════════════════════════════════════════════════════════════
+// RECENTLY OPENED WORKSPACES
+// ════════════════════════════════════════════════════════════
+function getRecentProjects() {
+  try { return JSON.parse(localStorage.getItem('aifinder_recent') || '[]'); } catch { return []; }
+}
+function trackRecentProject(project) {
+  let recent = getRecentProjects();
+  recent = [project.id, ...recent.filter(id => id !== project.id)].slice(0, 5);
+  localStorage.setItem('aifinder_recent', JSON.stringify(recent));
+}
+
+// patch openWorkspace to track recents
+const _origOpenWorkspaceForRecent = openWorkspace;
+function openWorkspace(project) {
+  _origOpenWorkspaceForRecent(project);
+  trackRecentProject(project);
+}

@@ -179,6 +179,13 @@
     <!-- HOME -->
     <section class="section active" id="section-home">
 
+      <!-- What's New Banner -->
+      <div class="whats-new-banner" id="whatsNewBanner">
+        <span class="whats-new-icon">✨</span>
+        <span class="whats-new-text"><strong>What's new:</strong> Split view · Dark mode · AI Enhance · Inline rename · Drag reorder and more!</span>
+        <button class="whats-new-close" id="closeWhatsNew" title="Dismiss">✕</button>
+      </div>
+
       <!-- Stats row -->
       <div class="dashboard-stats-row" id="dashboardStats">
         <div class="dash-stat">
@@ -316,15 +323,23 @@
       <div class="inner-page">
         <h2>Documentation</h2>
         <p class="inner-sub">Everything you need to know about the platform.</p>
-        <div class="doc-list">
-          <a href="#" class="doc-item"><span>📖</span> Quick Start Guide</a>
-          <a href="#" class="doc-item"><span>⚙️</span> Environment Variables</a>
-          <a href="#" class="doc-item"><span>🔗</span> Custom Domains</a>
-          <a href="#" class="doc-item"><span>🗄️</span> Database &amp; Storage</a>
-          <a href="#" class="doc-item"><span>🔑</span> Authentication</a>
-          <a href="#" class="doc-item"><span>🤖</span> AI Agent Reference</a>
-          <a href="#" class="doc-item"><span>��</span> Webhooks &amp; Events</a>
-          <a href="#" class="doc-item"><span>💳</span> Billing &amp; Plans</a>
+        <div class="docs-search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;color:var(--text-dim);flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="docsSearch" class="docs-search-input" placeholder="Search docs…" autocomplete="off" />
+        </div>
+        <div class="doc-list" id="docList">
+          <a href="#" class="doc-item" data-title="Quick Start Guide"><span>📖</span> Quick Start Guide</a>
+          <a href="#" class="doc-item" data-title="Environment Variables"><span>⚙️</span> Environment Variables</a>
+          <a href="#" class="doc-item" data-title="Custom Domains"><span>🔗</span> Custom Domains</a>
+          <a href="#" class="doc-item" data-title="Database & Storage"><span>🗄️</span> Database &amp; Storage</a>
+          <a href="#" class="doc-item" data-title="Authentication"><span>🔑</span> Authentication</a>
+          <a href="#" class="doc-item" data-title="AI Agent Reference"><span>🤖</span> AI Agent Reference</a>
+          <a href="#" class="doc-item" data-title="Webhooks & Events"><span>🪝</span> Webhooks &amp; Events</a>
+          <a href="#" class="doc-item" data-title="Billing & Plans"><span>💳</span> Billing &amp; Plans</a>
+          <a href="#" class="doc-item" data-title="Package Manager"><span>📦</span> Package Manager</a>
+          <a href="#" class="doc-item" data-title="Deployment Guide"><span>🚀</span> Deployment Guide</a>
+          <a href="#" class="doc-item" data-title="Secrets & Security"><span>🔐</span> Secrets &amp; Security</a>
+          <a href="#" class="doc-item" data-title="GitHub Integration"><span>⬛</span> GitHub Integration</a>
         </div>
       </div>
     </section>
@@ -334,32 +349,15 @@
       <div class="inner-page">
         <h2>Templates</h2>
         <p class="inner-sub">Start from a working foundation instead of blank.</p>
-        <div class="projects-grid">
-          <div class="project-card template-card" data-tpl="Build a full-stack web app with React and Node.js">
-            <div class="project-card-icon" style="background:#1e3a5f">🌐</div>
-            <div class="project-card-info"><div class="project-name">Full-Stack Web App</div><div class="project-meta">React + Node.js + Express</div></div>
-          </div>
-          <div class="project-card template-card" data-tpl="Create a Python Flask REST API with SQLite">
-            <div class="project-card-icon" style="background:#1a3326">🔌</div>
-            <div class="project-card-info"><div class="project-name">REST API</div><div class="project-meta">Python + Flask + SQLite</div></div>
-          </div>
-          <div class="project-card template-card" data-tpl="Build a Discord bot with slash commands and moderation">
-            <div class="project-card-icon" style="background:#1e2151">🤖</div>
-            <div class="project-card-info"><div class="project-name">Discord Bot</div><div class="project-meta">discord.js + Node.js</div></div>
-          </div>
-          <div class="project-card template-card" data-tpl="Create an AI chatbot with streaming responses">
-            <div class="project-card-icon" style="background:#2d1b4e">✨</div>
-            <div class="project-card-info"><div class="project-name">AI Chatbot</div><div class="project-meta">OpenAI + Streaming</div></div>
-          </div>
-          <div class="project-card template-card" data-tpl="Build a Telegram bot with inline keyboards">
-            <div class="project-card-icon" style="background:#0a2d42">📱</div>
-            <div class="project-card-info"><div class="project-name">Telegram Bot</div><div class="project-meta">telegraf + Node.js</div></div>
-          </div>
-          <div class="project-card template-card" data-tpl="Create a data dashboard with charts and real-time updates">
-            <div class="project-card-icon" style="background:#2d1a00">📊</div>
-            <div class="project-card-info"><div class="project-name">Analytics Dashboard</div><div class="project-meta">Chart.js + Express</div></div>
-          </div>
+        <div class="template-filter-tabs" id="tplFilterTabs">
+          <button class="tpl-tab active" data-stack="all">All</button>
+          <button class="tpl-tab" data-stack="React">React</button>
+          <button class="tpl-tab" data-stack="Node.js">Node.js</button>
+          <button class="tpl-tab" data-stack="Python">Python</button>
+          <button class="tpl-tab" data-stack="Go">Go</button>
+          <button class="tpl-tab" data-stack="bot">Bots</button>
         </div>
+        <div class="tpl-grid" id="tplGrid"></div>
       </div>
     </section>
 
@@ -458,6 +456,7 @@
       </div>
       <div class="build-actions" id="buildActions" style="display:none">
         <button class="btn-primary" id="openProjectBtn">Open Project →</button>
+        <button class="btn-secondary" id="downloadBuildLog">↓ Log</button>
       </div>
     </div>
   </div>
@@ -1036,6 +1035,7 @@
   </div>
 
   <div id="toastContainer" class="toast-container"></div>
+  <canvas id="confettiCanvas" style="position:fixed;inset:0;pointer-events:none;z-index:9999;display:none"></canvas>
 
   <script src="/js/app.js"></script>
 </body>
