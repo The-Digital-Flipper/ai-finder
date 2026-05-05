@@ -2794,3 +2794,161 @@ body.light-mode *::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.18); }
 }
 .tools-history-item:hover { background: var(--bg3); color: var(--text); }
 
+
+/* ══════════════════════════════
+   DASHBOARD STATS ROW
+══════════════════════════════ */
+.dashboard-stats-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 12px 24px 0;
+  animation: cardFadeIn 0.5s ease both;
+}
+.dash-stat {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 8px 24px;
+}
+.dash-stat-value {
+  font-size: 26px; font-weight: 800;
+  background: linear-gradient(135deg, var(--text) 40%, var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+}
+.dash-stat-label { font-size: 11px; color: var(--text-dim); margin-top: 3px; font-weight: 500; }
+.dash-stat-sep { width: 1px; height: 36px; background: var(--border); flex-shrink: 0; }
+
+/* ══════════════════════════════
+   INVITE MODAL
+══════════════════════════════ */
+.invite-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+.invite-email-row { display: flex; align-items: center; gap: 8px; }
+.invite-email-input {
+  flex: 1;
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: var(--radius-sm); padding: 8px 11px;
+  color: var(--text); font-size: 13px; font-family: inherit; outline: none;
+  transition: border-color 0.15s;
+}
+.invite-email-input:focus { border-color: var(--accent); }
+.invite-role-sel {
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: var(--radius-sm); padding: 8px 10px;
+  color: var(--text); font-size: 12px; font-family: inherit; outline: none;
+  cursor: pointer;
+}
+.invite-link-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm);
+}
+.invite-link-label { font-size: 11px; color: var(--text-dim); white-space: nowrap; }
+.invite-link-input {
+  flex: 1; background: none; border: none; outline: none;
+  font-size: 11px; font-family: 'Courier New', monospace; color: var(--accent);
+}
+.invite-copy-btn {
+  padding: 3px 10px;
+  background: rgba(59,130,246,0.12);
+  border: 1px solid rgba(59,130,246,0.25);
+  border-radius: 4px; color: var(--accent);
+  font-size: 11px; font-weight: 600; font-family: inherit; cursor: pointer;
+  transition: background 0.15s;
+}
+.invite-copy-btn:hover { background: rgba(59,130,246,0.22); }
+.invite-list-title { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.invite-list { display: flex; flex-direction: column; gap: 4px; }
+.invite-list-item { display: flex; align-items: center; gap: 10px; padding: 7px 10px; background: var(--bg2); border-radius: var(--radius-sm); }
+.invite-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; flex-shrink: 0; }
+.invite-item-info { flex: 1; display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); }
+.invite-role-tag { background: var(--bg3); padding: 1px 7px; border-radius: 10px; font-size: 10px; color: var(--text-dim); }
+.invite-status { font-size: 11px; white-space: nowrap; }
+.invite-status.accepted { color: #22c55e; }
+.invite-status.pending  { color: #fbbf24; }
+
+/* ══════════════════════════════
+   PROJECT TAGS
+══════════════════════════════ */
+.project-tags {
+  display: flex; flex-wrap: wrap; gap: 4px;
+  margin-top: 4px;
+}
+.project-tag {
+  display: inline-flex; align-items: center;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.3px;
+}
+
+/* ══════════════════════════════
+   PACKAGE MANAGER PANE
+══════════════════════════════ */
+.ws-packages-wrap { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+.ws-pkg-header { padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.07); flex-shrink: 0; }
+.ws-pkg-title { font-size: 13px; font-weight: 700; color: var(--text); display: block; margin-bottom: 8px; }
+.ws-pkg-search-row { display: flex; gap: 6px; }
+.ws-pkg-input {
+  flex: 1;
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: var(--radius-sm); padding: 6px 10px;
+  color: var(--text); font-size: 12px; font-family: inherit; outline: none;
+  transition: border-color 0.15s;
+}
+.ws-pkg-input:focus { border-color: var(--accent); }
+.ws-pkg-install-btn {
+  padding: 6px 12px;
+  background: var(--accent); border: none; border-radius: var(--radius-sm);
+  color: white; font-size: 12px; font-weight: 600; font-family: inherit;
+  cursor: pointer; transition: background 0.15s; white-space: nowrap;
+}
+.ws-pkg-install-btn:hover { background: var(--accent-hov); }
+.ws-pkg-list { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 3px; }
+.ws-pkg-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 7px 10px;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.15s;
+}
+.ws-pkg-item:hover { border-color: var(--border2); }
+.ws-pkg-info { flex: 1; min-width: 0; }
+.ws-pkg-name { font-size: 12px; font-weight: 600; color: var(--text); font-family: 'Courier New', monospace; }
+.ws-pkg-ver  { font-size: 10px; color: var(--text-dim); margin-top: 1px; }
+.ws-pkg-remove {
+  background: none; border: none; color: var(--text-dim);
+  cursor: pointer; font-size: 13px; padding: 0 3px;
+  transition: color 0.12s;
+}
+.ws-pkg-remove:hover { color: #ef4444; }
+
+/* ══════════════════════════════
+   BUILD CONFIG PANE
+══════════════════════════════ */
+.ws-buildcfg-wrap { padding: 20px; }
+.ws-buildcfg-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 16px; }
+.ws-buildcfg-form { display: flex; flex-direction: column; gap: 12px; }
+.ws-buildcfg-row { display: flex; flex-direction: column; gap: 5px; }
+.ws-buildcfg-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
+.ws-buildcfg-input {
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: var(--radius-sm); padding: 8px 11px;
+  color: var(--text); font-size: 13px; font-family: 'Courier New', monospace; outline: none;
+  transition: border-color 0.15s;
+}
+.ws-buildcfg-input:focus { border-color: var(--accent); }
+.ws-buildcfg-save {
+  padding: 9px; margin-top: 4px;
+  background: var(--accent); border: none; border-radius: var(--radius-sm);
+  color: white; font-size: 13px; font-weight: 600; font-family: inherit;
+  cursor: pointer; transition: background 0.15s;
+}
+.ws-buildcfg-save:hover { background: var(--accent-hov); }
+
+/* ══════════════════════════════
+   CODE GUTTER ERROR MARKERS
+══════════════════════════════ */
+.ws-gutter-error { color: #ef4444; font-size: 9px; cursor: default; }
+.ws-gutter-warn  { color: #fbbf24; font-size: 9px; cursor: default; }

@@ -178,6 +178,30 @@
 
     <!-- HOME -->
     <section class="section active" id="section-home">
+
+      <!-- Stats row -->
+      <div class="dashboard-stats-row" id="dashboardStats">
+        <div class="dash-stat">
+          <span class="dash-stat-value" id="statProjects">0</span>
+          <span class="dash-stat-label">Projects</span>
+        </div>
+        <div class="dash-stat-sep"></div>
+        <div class="dash-stat">
+          <span class="dash-stat-value" id="statDeploys">0</span>
+          <span class="dash-stat-label">Deployments</span>
+        </div>
+        <div class="dash-stat-sep"></div>
+        <div class="dash-stat">
+          <span class="dash-stat-value">99.9<span style="font-size:14px">%</span></span>
+          <span class="dash-stat-label">Uptime</span>
+        </div>
+        <div class="dash-stat-sep"></div>
+        <div class="dash-stat">
+          <span class="dash-stat-value" id="statAiRuns">0</span>
+          <span class="dash-stat-label">AI Runs</span>
+        </div>
+      </div>
+
       <div class="prompt-area">
         <div class="prompt-workspace-row">
           <div class="workspace-avatar sm">J</div>
@@ -374,6 +398,45 @@
       <div class="modal-footer">
         <button class="btn-cancel" id="modalCancelBtn">Cancel</button>
         <button class="btn-primary" id="modalCreateBtn">Create project</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Invite Collaborators Modal -->
+  <div class="modal-overlay" id="inviteOverlay" style="display:none">
+    <div class="modal" id="inviteModal">
+      <div class="modal-header">
+        <h3>Invite Collaborators</h3>
+        <button class="modal-close" id="inviteClose">✕</button>
+      </div>
+      <div class="invite-body">
+        <div class="invite-email-row">
+          <input type="email" id="inviteEmail" class="invite-email-input" placeholder="Enter email address…" />
+          <select class="invite-role-sel" id="inviteRole">
+            <option value="Editor">Editor</option>
+            <option value="Viewer">Viewer</option>
+            <option value="Admin">Admin</option>
+          </select>
+          <button class="btn-primary" id="inviteSubmitBtn" style="white-space:nowrap;padding:7px 14px">Send Invite</button>
+        </div>
+        <div class="invite-link-row">
+          <span class="invite-link-label">Share link</span>
+          <input type="text" class="invite-link-input" id="inviteLink" readonly value="" />
+          <button class="invite-copy-btn" id="copyInviteLink">Copy</button>
+        </div>
+        <div class="invite-list-title">Collaborators</div>
+        <div class="invite-list" id="inviteList">
+          <div class="invite-list-item">
+            <div class="invite-avatar" style="background:linear-gradient(135deg,#3b82f6,#8b5cf6)">A</div>
+            <div class="invite-item-info"><span>alex@example.com</span><span class="invite-role-tag">Admin</span></div>
+            <span class="invite-status accepted">✓ Accepted</span>
+          </div>
+          <div class="invite-list-item">
+            <div class="invite-avatar" style="background:linear-gradient(135deg,#10b981,#3b82f6)">S</div>
+            <div class="invite-item-info"><span>sarah@example.com</span><span class="invite-role-tag">Editor</span></div>
+            <span class="invite-status pending">⏳ Pending</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -724,6 +787,46 @@
             <h3>Auth</h3>
             <p>Let users log in to your App using a prebuilt login page. Supports email/password, Google, GitHub, and more.</p>
             <button class="btn-primary">Enable Auth</button>
+          </div>
+        </div>
+
+        <!-- PACKAGES pane -->
+        <div class="ws-editor-pane" id="pane-packages">
+          <div class="ws-packages-wrap">
+            <div class="ws-pkg-header">
+              <span class="ws-pkg-title">📦 Packages</span>
+              <div class="ws-pkg-search-row">
+                <input type="text" id="wsPackageSearch" class="ws-pkg-input" placeholder="Search npm / pip…" autocomplete="off" />
+                <button class="ws-pkg-install-btn" id="wsPackageInstall">Install</button>
+              </div>
+            </div>
+            <div class="ws-pkg-list" id="wsPackageList"></div>
+          </div>
+        </div>
+
+        <!-- BUILD CONFIG pane -->
+        <div class="ws-editor-pane" id="pane-buildconfig">
+          <div class="ws-buildcfg-wrap">
+            <div class="ws-buildcfg-title">⚙️ Build Configuration</div>
+            <div class="ws-buildcfg-form">
+              <div class="ws-buildcfg-row">
+                <label class="ws-buildcfg-label">Run command</label>
+                <input type="text" class="ws-buildcfg-input" id="bcfgRun" placeholder="npm start" />
+              </div>
+              <div class="ws-buildcfg-row">
+                <label class="ws-buildcfg-label">Install command</label>
+                <input type="text" class="ws-buildcfg-input" id="bcfgInstall" placeholder="npm install" />
+              </div>
+              <div class="ws-buildcfg-row">
+                <label class="ws-buildcfg-label">Build command</label>
+                <input type="text" class="ws-buildcfg-input" id="bcfgBuild" placeholder="npm run build" />
+              </div>
+              <div class="ws-buildcfg-row">
+                <label class="ws-buildcfg-label">Port</label>
+                <input type="number" class="ws-buildcfg-input" id="bcfgPort" placeholder="3000" style="width:80px" />
+              </div>
+              <button class="ws-buildcfg-save" id="bcfgSave">Save Configuration</button>
+            </div>
           </div>
         </div>
 

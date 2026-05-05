@@ -2416,3 +2416,285 @@ function renderProjects(filter) {
     attachDragHandlers();
   }
 })();
+
+// ════════════════════════════════════════════════════════════
+// ANIMATED STATS COUNTERS
+// ════════════════════════════════════════════════════════════
+function animateCounter(el, target, duration = 900) {
+  let startTime = null;
+  function step(ts) {
+    if (!startTime) startTime = ts;
+    const progress = Math.min((ts - startTime) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(eased * target);
+    if (progress < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function refreshStats() {
+  const projects = getProjects();
+  const pe = document.getElementById('statProjects');
+  const de = document.getElementById('statDeploys');
+  const ae = document.getElementById('statAiRuns');
+  if (pe) animateCounter(pe, projects.length);
+  if (de) animateCounter(de, projects.length * 3 + 12);
+  if (ae) animateCounter(ae, projects.length * 7 + 31);
+}
+refreshStats();
+
+// ════════════════════════════════════════════════════════════
+// CTRL+ENTER TO SUBMIT PROMPT
+// ════════════════════════════════════════════════════════════
+document.getElementById('promptInput')?.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    e.preventDefault();
+    document.getElementById('btnSubmit')?.click();
+  }
+});
+
+// ════════════════════════════════════════════════════════════
+// INVITE COLLABORATORS DIALOG
+// ════════════════════════════════════════════════════════════
+const inviteOverlay = document.getElementById('inviteOverlay');
+const wsInviteBtn   = document.getElementById('wsInviteBtn');
+const inviteClose   = document.getElementById('inviteClose');
+
+wsInviteBtn?.addEventListener('click', () => {
+  const slug = activeProject?.name?.toLowerCase().replace(/\s+/g,'-') || 'project';
+  const linkEl = document.getElementById('inviteLink');
+  if (linkEl) linkEl.value = `https://replit.com/join/${slug}-${Math.random().toString(36).slice(2,8)}`;
+  inviteOverlay.style.display = '';
+});
+inviteClose?.addEventListener('click', () => { inviteOverlay.style.display = 'none'; });
+inviteOverlay?.addEventListener('click', e => { if (e.target === inviteOverlay) inviteOverlay.style.display = 'none'; });
+
+document.getElementById('inviteSubmitBtn')?.addEventListener('click', () => {
+  const email = document.getElementById('inviteEmail')?.value.trim();
+  const role  = document.getElementById('inviteRole')?.value;
+  if (!email || !email.includes('@')) { showToast('Enter a valid email address', 'error'); return; }
+  const list = document.getElementById('inviteList');
+  if (list) {
+    const letter = email[0].toUpperCase();
+    const item = document.createElement('div');
+    item.className = 'invite-list-item';
+    item.innerHTML = `<div class="invite-avatar" style="background:linear-gradient(135deg,#8b5cf6,#ec4899)">${letter}</div><div class="invite-item-info"><span>${email}</span><span class="invite-role-tag">${role}</span></div><span class="invite-status pending">⏳ Pending</span>`;
+    list.appendChild(item);
+  }
+  document.getElementById('inviteEmail').value = '';
+  showToast(`Invite sent to ${email}`, 'success');
+});
+
+document.getElementById('copyInviteLink')?.addEventListener('click', () => {
+  const link = document.getElementById('inviteLink')?.value;
+  navigator.clipboard?.writeText(link).catch(() => {});
+  const btn = document.getElementById('copyInviteLink');
+  btn.textContent = '✓ Copied!';
+  setTimeout(() => { btn.textContent = 'Copy'; }, 1800);
+});
+
+// ════════════════════════════════════════════════════════════
+// PROJECT TAGS
+// ════════════════════════════════════════════════════════════
+const STACK_TAGS = {
+  'Node.js':    [{ label:'backend', bg:'rgba(34,197,94,0.12)', color:'#22c55e' }, { label:'api', bg:'rgba(59,130,246,0.12)', color:'#60a5fa' }],
+  Python:       [{ label:'python', bg:'rgba(59,130,246,0.12)', color:'#60a5fa' }, { label:'ai', bg:'rgba(167,139,250,0.12)', color:'#a78bfa' }],
+  React:        [{ label:'frontend', bg:'rgba(97,218,251,0.12)', color:'#22d3ee' }, { label:'react', bg:'rgba(59,130,246,0.12)', color:'#60a5fa' }],
+  Go:           [{ label:'go', bg:'rgba(0,172,215,0.12)', color:'#22d3ee' }, { label:'backend', bg:'rgba(34,197,94,0.12)', color:'#22c55e' }],
+  Rust:         [{ label:'rust', bg:'rgba(222,165,132,0.15)', color:'#fca5a5' }, { label:'systems', bg:'rgba(251,191,36,0.12)', color:'#fbbf24' }],
+  'HTML/CSS/JS':[{ label:'web', bg:'rgba(239,68,68,0.1)', color:'#f87171' }, { label:'frontend', bg:'rgba(97,218,251,0.12)', color:'#22d3ee' }],
+};
+
+function addTagsToCard(card, stack) {
+  if (card.querySelector('.project-tags')) return;
+  const tags = STACK_TAGS[stack] || STACK_TAGS['Node.js'];
+  const info = card.querySelector('.project-card-info');
+  if (!info) return;
+  const container = document.createElement('div');
+  container.className = 'project-tags';
+  tags.forEach(t => {
+    const span = document.createElement('span');
+    span.className = 'project-tag';
+    span.textContent = '#' + t.label;
+    span.style.background = t.bg;
+    span.style.color = t.color;
+    container.appendChild(span);
+  });
+  info.appendChild(container);
+}
+
+const _rpForTags = renderProjects;
+function renderProjects(filter) {
+  _rpForTags(filter);
+  document.querySelectorAll('.project-card').forEach(card => {
+    const metaEl = card.querySelector('.project-meta');
+    const stack  = metaEl?.textContent?.split(' · ')[0]?.trim() || 'Node.js';
+    addTagsToCard(card, stack);
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// PACKAGE MANAGER
+// ════════════════════════════════════════════════════════════
+const PACKAGES_BY_STACK = {
+  'Node.js': [
+    { name: 'express', ver: '^4.18.2' },
+    { name: 'dotenv',  ver: '^16.0.3' },
+    { name: 'cors',    ver: '^2.8.5' },
+    { name: 'nodemon', ver: '^3.0.1', dev: true },
+  ],
+  Python: [
+    { name: 'flask',    ver: '3.0.0' },
+    { name: 'requests', ver: '2.31.0' },
+    { name: 'python-dotenv', ver: '1.0.0' },
+  ],
+  React: [
+    { name: 'react',       ver: '^18.2.0' },
+    { name: 'react-dom',   ver: '^18.2.0' },
+    { name: 'vite',        ver: '^5.0.0', dev: true },
+    { name: 'tailwindcss', ver: '^3.3.0', dev: true },
+  ],
+  Go: [
+    { name: 'github.com/gin-gonic/gin', ver: 'v1.9.1' },
+    { name: 'github.com/joho/godotenv', ver: 'v1.5.1' },
+  ],
+  Rust: [
+    { name: 'tokio',  ver: '1.35.0' },
+    { name: 'axum',   ver: '0.7.2' },
+    { name: 'serde',  ver: '1.0.193' },
+  ],
+  'HTML/CSS/JS': [
+    { name: 'parcel', ver: '^2.10.3', dev: true },
+    { name: 'lodash', ver: '^4.17.21' },
+  ],
+};
+
+function initPackagesPane(stack) {
+  const list = document.getElementById('wsPackageList');
+  if (!list) return;
+  list.innerHTML = '';
+  const pkgs = PACKAGES_BY_STACK[stack] || PACKAGES_BY_STACK['Node.js'];
+  pkgs.forEach(pkg => addPackageItem(list, pkg));
+}
+
+function addPackageItem(list, pkg) {
+  const item = document.createElement('div');
+  item.className = 'ws-pkg-item';
+  item.innerHTML = `
+    <div class="ws-pkg-info">
+      <div class="ws-pkg-name">${pkg.name}</div>
+      <div class="ws-pkg-ver">${pkg.ver}${pkg.dev ? ' (dev)' : ''}</div>
+    </div>
+    <button class="ws-pkg-remove" title="Remove">✕</button>`;
+  item.querySelector('.ws-pkg-remove').addEventListener('click', () => {
+    item.style.opacity = '0';
+    item.style.transform = 'translateX(8px)';
+    item.style.transition = '0.2s';
+    setTimeout(() => item.remove(), 200);
+    showToast(`Removed ${pkg.name}`, 'info');
+  });
+  list.appendChild(item);
+}
+
+document.getElementById('wsPackageInstall')?.addEventListener('click', () => {
+  const input = document.getElementById('wsPackageSearch');
+  const name = input?.value.trim();
+  if (!name) { showToast('Enter a package name', 'error'); return; }
+  const btn = document.getElementById('wsPackageInstall');
+  btn.textContent = 'Installing…';
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.textContent = 'Install';
+    btn.disabled = false;
+    const list = document.getElementById('wsPackageList');
+    if (list) addPackageItem(list, { name, ver: 'latest' });
+    input.value = '';
+    showToast(`✓ Installed ${name}`, 'success');
+  }, 1400);
+});
+
+// ════════════════════════════════════════════════════════════
+// BUILD CONFIGURATION
+// ════════════════════════════════════════════════════════════
+const BUILD_DEFAULTS = {
+  'Node.js':    { run: 'node index.js', install: 'npm install', build: '', port: '3000' },
+  Python:       { run: 'python main.py', install: 'pip install -r requirements.txt', build: '', port: '8080' },
+  React:        { run: 'npm run dev', install: 'npm install', build: 'npm run build', port: '5173' },
+  Go:           { run: 'go run main.go', install: '', build: 'go build -o app', port: '8080' },
+  Rust:         { run: 'cargo run', install: '', build: 'cargo build --release', port: '3000' },
+  'HTML/CSS/JS':{ run: 'npx parcel index.html', install: 'npm install', build: 'npx parcel build index.html', port: '1234' },
+};
+
+function initBuildConfig(stack) {
+  const cfg = BUILD_DEFAULTS[stack] || BUILD_DEFAULTS['Node.js'];
+  const r = document.getElementById('bcfgRun');
+  const i = document.getElementById('bcfgInstall');
+  const b = document.getElementById('bcfgBuild');
+  const p = document.getElementById('bcfgPort');
+  if (r) r.value = cfg.run;
+  if (i) i.value = cfg.install;
+  if (b) b.value = cfg.build;
+  if (p) p.value = cfg.port;
+}
+
+document.getElementById('bcfgSave')?.addEventListener('click', () => showToast('✓ Build config saved', 'success'));
+
+// ════════════════════════════════════════════════════════════
+// ERROR / WARNING MARKERS IN CODE GUTTER
+// ════════════════════════════════════════════════════════════
+const MOCK_ERRORS = {
+  'Node.js': [{ line: 5, type: 'warn', msg: 'Unused variable "app"' }, { line: 12, type: 'error', msg: 'Missing semicolon' }],
+  Python:    [{ line: 3, type: 'warn', msg: 'Import "os" not used' }],
+  React:     [{ line: 8, type: 'warn', msg: 'Hook dependency array may be incomplete' }],
+};
+
+function addErrorMarkers(stack) {
+  const lineNums = document.getElementById('wsLineNums');
+  if (!lineNums) return;
+  const errors = MOCK_ERRORS[stack] || [];
+  const lines = lineNums.querySelectorAll('.ln');
+  errors.forEach(err => {
+    const lineEl = lines[err.line - 1];
+    if (!lineEl) return;
+    if (lineEl.querySelector('.ws-gutter-error, .ws-gutter-warn')) return;
+    const marker = document.createElement('span');
+    marker.className = err.type === 'error' ? 'ws-gutter-error' : 'ws-gutter-warn';
+    marker.textContent = err.type === 'error' ? '●' : '▲';
+    marker.title = err.msg;
+    lineEl.appendChild(marker);
+  });
+}
+
+// patch loadCode to add markers after loading
+const _loadCodeForMarkers = loadCode;
+function loadCode(stack) {
+  _loadCodeForMarkers(stack);
+  setTimeout(() => {
+    addErrorMarkers(stack);
+    initPackagesPane(stack);
+    initBuildConfig(stack);
+  }, 80);
+}
+
+// ════════════════════════════════════════════════════════════
+// WORKSPACE FADE-IN
+// ════════════════════════════════════════════════════════════
+(function patchWorkspaceFadeIn() {
+  const wsBody = document.querySelector('.ws-body');
+  if (!wsBody) return;
+  const _orig = openWorkspace;
+  const observer = new MutationObserver(() => {
+    if (workspace.classList.contains('open')) {
+      wsBody.style.opacity = '0';
+      wsBody.style.transform = 'translateY(6px)';
+      wsBody.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          wsBody.style.opacity = '1';
+          wsBody.style.transform = 'translateY(0)';
+        }, 80);
+      });
+    }
+  });
+  observer.observe(workspace, { attributes: true, attributeFilter: ['class'] });
+})();
