@@ -2095,3 +2095,156 @@ body.light-mode .ws-md-view pre { background: #1e1e1e; }
 
 
 
+
+/* ══════════════════════════════
+   PROMPT CHARACTER COUNTER & HINT
+══════════════════════════════ */
+.prompt-char-count {
+  font-size: 11px;
+  color: var(--text-dim);
+  transition: color 0.2s;
+}
+.prompt-char-count.warn { color: #fbbf24; }
+.prompt-char-count.over { color: #ef4444; }
+.prompt-hint {
+  font-size: 11px;
+  color: var(--text-dim);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 7px;
+}
+
+/* ══════════════════════════════
+   CODE HEADER EXTRAS
+══════════════════════════════ */
+.ws-code-header {
+  flex-shrink: 0;
+}
+.ws-code-save-indicator {
+  font-size: 11px;
+  color: #22c55e;
+  font-weight: 600;
+  transition: opacity 0.3s;
+  white-space: nowrap;
+  margin-right: 6px;
+}
+.ws-code-ai-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 3px 9px;
+  background: rgba(167,139,250,0.1);
+  border: 1px solid rgba(167,139,250,0.25);
+  border-radius: var(--radius-sm);
+  color: #a78bfa;
+  font-size: 11px; font-weight: 500;
+  cursor: pointer; font-family: inherit;
+  transition: background 0.15s;
+}
+.ws-code-ai-btn:hover { background: rgba(167,139,250,0.22); }
+.ws-code-ai-btn.loading { opacity: 0.6; pointer-events: none; }
+
+/* ══════════════════════════════
+   DEPLOY URL BOX
+══════════════════════════════ */
+.publish-url-box {
+  width: 100%;
+  max-width: 380px;
+  animation: modalIn 0.2s ease;
+}
+.publish-url-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px;
+  background: rgba(34,197,94,0.07);
+  border: 1px solid rgba(34,197,94,0.25);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+}
+.publish-url-input {
+  flex: 1; background: none; border: none; outline: none;
+  font-size: 12px; color: #22c55e;
+  font-family: "Courier New", monospace;
+}
+.publish-url-copy {
+  padding: 3px 10px;
+  background: rgba(34,197,94,0.15);
+  border: 1px solid rgba(34,197,94,0.3);
+  border-radius: 4px;
+  color: #22c55e; font-size: 11px; font-weight: 600;
+  cursor: pointer; font-family: inherit; white-space: nowrap;
+  transition: background 0.15s;
+}
+.publish-url-copy:hover { background: rgba(34,197,94,0.25); }
+.publish-url-note { font-size: 12px; color: var(--text-muted); text-align: center; }
+
+/* ══════════════════════════════
+   ACTIVITY FEED
+══════════════════════════════ */
+.activity-section {
+  padding: 0 24px 32px;
+  max-width: 900px;
+}
+.activity-section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.activity-section-title {
+  font-size: 13px; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.activity-list {
+  display: flex; flex-direction: column; gap: 2px;
+}
+.activity-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  transition: background 0.12s;
+  animation: cardFadeIn 0.25s ease both;
+}
+.activity-item:hover { background: var(--bg2); }
+.activity-dot-wrap {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; flex-shrink: 0;
+}
+.activity-dot-wrap.success { background: rgba(34,197,94,0.1); }
+.activity-dot-wrap.deploy  { background: rgba(59,130,246,0.1); }
+.activity-dot-wrap.ai      { background: rgba(167,139,250,0.1); }
+.activity-dot-wrap.update  { background: rgba(251,191,36,0.1); }
+.activity-dot-wrap.install { background: rgba(148,163,184,0.1); }
+.activity-content { flex: 1; min-width: 0; }
+.activity-text {
+  font-size: 13px; color: var(--text-muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  display: block;
+}
+.activity-time {
+  font-size: 11px; color: var(--text-dim); margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════
+   TOOLS PANEL KEYBOARD NAV
+══════════════════════════════ */
+.tool-item.focused {
+  background: rgba(59,130,246,0.1);
+  outline: none;
+}
+
+/* ══════════════════════════════
+   INLINE PROJECT RENAME
+══════════════════════════════ */
+.project-name-input {
+  background: var(--bg3);
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  padding: 1px 6px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  outline: none;
+  width: 100%;
+  max-width: 160px;
+}
+

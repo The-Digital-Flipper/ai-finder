@@ -164,7 +164,7 @@
           </svg>
         </div>
         <h1 class="prompt-heading">Hi Joshua, what do you want to make?</h1>
-        <div class="prompt-box" id="promptBox">
+          <div class="prompt-box" id="promptBox">
           <textarea class="prompt-textarea" id="promptInput" placeholder="Describe your idea, Replit will bring it to life..." rows="3"></textarea>
           <div class="prompt-actions">
             <div class="prompt-actions-left">
@@ -173,8 +173,10 @@
                   <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                 </svg>
               </button>
+              <span class="prompt-char-count" id="promptCharCount">0</span>
             </div>
             <div class="prompt-actions-right">
+              <span class="prompt-hint">Ctrl+Enter</span>
               <button class="btn-plan" id="btnPlan">Plan</button>
               <button class="btn-submit" id="btnSubmit" title="Build">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -234,6 +236,15 @@
         </div>
         <div class="projects-grid" id="projectsGrid"></div>
       </div>
+
+      <!-- Activity feed -->
+      <div class="activity-section">
+        <div class="activity-section-header">
+          <h3 class="activity-section-title">Activity</h3>
+        </div>
+        <div class="activity-list" id="activityList"></div>
+      </div>
+
     </section>
 
     <!-- LEARN -->
@@ -497,6 +508,12 @@
           <div class="ws-code-header">
             <span class="ws-code-filename" id="wsCodeFilename">index.js</span>
             <span class="ws-code-lang" id="wsCodeLang">JavaScript</span>
+            <div style="flex:1"></div>
+            <span class="ws-code-save-indicator" id="wsCodeSaveIndicator"></span>
+            <button class="ws-code-ai-btn" id="wsCodeAiBtn" title="AI enhance this file">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M12 2a7 7 0 0 1 7 7c0 4-3 6-3 9H8c0-3-3-5-3-9a7 7 0 0 1 7-7z"/><line x1="8" y1="22" x2="16" y2="22"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
+              AI Enhance
+            </button>
           </div>
           <div class="ws-code-body" id="wsCodeBody">
             <div class="ws-line-nums" id="wsLineNums"></div>
@@ -554,6 +571,14 @@
             <h3>Publishing</h3>
             <p>Publish a live, stable, public version of your App, unaffected by the changes you make in the workspace.</p>
             <button class="btn-primary" id="publishBtn">Publish App →</button>
+            <div class="publish-url-box" id="publishUrlBox" style="display:none">
+              <div class="publish-url-row">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" style="width:14px;height:14px;flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                <input type="text" class="publish-url-input" id="publishUrlInput" readonly value="" />
+                <button class="publish-url-copy" id="copyPublishUrl">Copy</button>
+              </div>
+              <p class="publish-url-note">🎉 Your app is live! Share this link with anyone.</p>
+            </div>
           </div>
         </div>
 

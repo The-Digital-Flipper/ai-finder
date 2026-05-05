@@ -1417,3 +1417,191 @@ function loadCode(stack) {
 }
 
 
+
+// ════════════════════════════════════════════════════════════
+// CHARACTER COUNTER FOR PROMPT
+// ════════════════════════════════════════════════════════════
+(function initCharCounter() {
+  const textarea = document.getElementById('promptInput');
+  const counter  = document.getElementById('promptCharCount');
+  if (!textarea || !counter) return;
+  textarea.addEventListener('input', () => {
+    const len = textarea.value.length;
+    counter.textContent = len;
+    counter.className = 'prompt-char-count' + (len > 800 ? ' over' : len > 500 ? ' warn' : '');
+  });
+})();
+
+// ════════════════════════════════════════════════════════════
+// CTRL+S SAVE FEEDBACK
+// ════════════════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 's' && workspace.classList.contains('open')) {
+    e.preventDefault();
+    const ind = document.getElementById('wsCodeSaveIndicator');
+    if (!ind) return;
+    ind.textContent = '✓ Saved';
+    ind.style.opacity = '1';
+    clearTimeout(ind._timer);
+    ind._timer = setTimeout(() => { ind.style.opacity = '0'; }, 1800);
+  }
+});
+
+// ════════════════════════════════════════════════════════════
+// AI ENHANCE BUTTON
+// ════════════════════════════════════════════════════════════
+document.getElementById('wsCodeAiBtn').addEventListener('click', function () {
+  const btn = this;
+  btn.classList.add('loading');
+  btn.textContent = '✦ Enhancing…';
+  setTimeout(() => {
+    btn.classList.remove('loading');
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M12 2a7 7 0 0 1 7 7c0 4-3 6-3 9H8c0-3-3-5-3-9a7 7 0 0 1 7-7z"/><line x1="8" y1="22" x2="16" y2="22"/><line x1="10" y1="18" x2="14" y2="18"/></svg> AI Enhance`;
+    const content = document.getElementById('wsCodeContent');
+    if (content) {
+      const comment = activeProject?.stack === 'Python'
+        ? '\n# ✦ AI: optimized for performance and readability'
+        : '\n// ✦ AI: optimized for performance and readability';
+      content.innerHTML += `<span class="hl-comment">${comment}</span>`;
+    }
+    showToast('✦ AI enhancement applied', 'info');
+  }, 1600);
+});
+
+// ════════════════════════════════════════════════════════════
+// DEPLOY URL DISPLAY
+// ════════════════════════════════════════════════════════════
+(function patchPublishBtn() {
+  const btn = document.getElementById('publishBtn');
+  if (!btn) return;
+  // remove old inline listener; re-attach cleanly
+  const freshBtn = btn.cloneNode(true);
+  btn.parentNode.replaceChild(freshBtn, btn);
+
+  freshBtn.addEventListener('click', () => {
+    freshBtn.textContent = 'Publishing…';
+    freshBtn.disabled = true;
+    setTimeout(() => {
+      freshBtn.textContent = '✓ Published';
+      freshBtn.disabled = false;
+      freshBtn.style.background = '#22c55e';
+
+      const projectSlug = activeProject ? activeProject.name.toLowerCase().replace(/\s+/g,'-') : 'my-app';
+      const url = `https://${projectSlug}.repl.co`;
+      const box = document.getElementById('publishUrlBox');
+      const inp = document.getElementById('publishUrlInput');
+      if (box && inp) { inp.value = url; box.style.display = ''; }
+      showToast('🚀 App deployed at ' + url, 'success');
+    }, 2200);
+  });
+
+  document.getElementById('copyPublishUrl').addEventListener('click', () => {
+    const inp = document.getElementById('publishUrlInput');
+    if (!inp) return;
+    navigator.clipboard?.writeText(inp.value).catch(() => {});
+    const copyBtn = document.getElementById('copyPublishUrl');
+    copyBtn.textContent = '✓ Copied!';
+    setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1800);
+  });
+})();
+
+// ════════════════════════════════════════════════════════════
+// ACTIVITY FEED
+// ════════════════════════════════════════════════════════════
+function renderActivityFeed() {
+  const feedEl = document.getElementById('activityList');
+  if (!feedEl) return;
+  const projects = getProjects();
+  const p0 = projects[0]?.name || 'my-app';
+  const p1 = projects[1]?.name || 'discord-bot';
+  const activities = [
+    { cls:'success', icon:'✅', text:`${p0} built successfully`,                 time:'2 min ago' },
+    { cls:'deploy',  icon:'🚀', text:`${p0} deployed to production`,             time:'4 min ago' },
+    { cls:'ai',      icon:'✦',  text:`AI optimized 3 files in ${p0}`,           time:'18 min ago'},
+    { cls:'update',  icon:'🔧', text:`${p1} updated — 2 files changed`,          time:'1 hr ago'  },
+    { cls:'install', icon:'📦', text:`Installed 12 packages in ${p1}`,           time:'2 hrs ago' },
+  ];
+  feedEl.innerHTML = '';
+  activities.forEach((a, i) => {
+    const item = document.createElement('div');
+    item.className = 'activity-item';
+    item.style.animationDelay = `${i * 0.06}s`;
+    item.innerHTML = `
+      <div class="activity-dot-wrap ${a.cls}">${a.icon}</div>
+      <div class="activity-content">
+        <span class="activity-text">${a.text}</span>
+      </div>
+      <span class="activity-time">${a.time}</span>`;
+    feedEl.appendChild(item);
+  });
+}
+renderActivityFeed();
+
+// ════════════════════════════════════════════════════════════
+// INLINE PROJECT RENAME (double-click on card)
+// ════════════════════════════════════════════════════════════
+document.getElementById('projectsGrid').addEventListener('dblclick', e => {
+  const nameEl = e.target.closest('.project-name');
+  if (!nameEl) return;
+  const card = nameEl.closest('.project-card');
+  if (!card) return;
+  const currentName = nameEl.textContent;
+  const input = document.createElement('input');
+  input.className = 'project-name-input';
+  input.value = currentName;
+  nameEl.replaceWith(input);
+  input.focus();
+  input.select();
+
+  function saveRename() {
+    const newName = input.value.trim().toLowerCase().replace(/\s+/g,'-') || currentName;
+    const nameSpan = document.createElement('div');
+    nameSpan.className = 'project-name';
+    nameSpan.textContent = newName;
+    input.replaceWith(nameSpan);
+    if (newName !== currentName) {
+      const projects = getProjects();
+      const p = projects.find(p => p.name === currentName);
+      if (p) { p.name = newName; saveProjects(projects); showToast(`Renamed to "${newName}"`, 'info'); }
+    }
+  }
+  input.addEventListener('blur', saveRename);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+    if (e.key === 'Escape') { input.value = currentName; input.blur(); }
+  });
+});
+
+// ════════════════════════════════════════════════════════════
+// KEYBOARD NAVIGATION IN TOOLS PANEL
+// ════════════════════════════════════════════════════════════
+(function initToolsKeyNav() {
+  let focusIdx = -1;
+
+  function getVisibleItems() {
+    return [...document.querySelectorAll('.tool-item[data-tool]')].filter(i => i.style.display !== 'none');
+  }
+  function setFocus(idx) {
+    const items = getVisibleItems();
+    items.forEach(i => i.classList.remove('focused'));
+    if (idx >= 0 && idx < items.length) {
+      items[idx].classList.add('focused');
+      items[idx].scrollIntoView({ block:'nearest' });
+      focusIdx = idx;
+    }
+  }
+
+  document.getElementById('toolsSearchInput').addEventListener('keydown', e => {
+    if (!toolsPanel.classList.contains('open')) return;
+    const items = getVisibleItems();
+    if (e.key === 'ArrowDown') { e.preventDefault(); setFocus(Math.min(focusIdx + 1, items.length - 1)); }
+    if (e.key === 'ArrowUp')   { e.preventDefault(); setFocus(Math.max(focusIdx - 1, 0)); }
+    if (e.key === 'Enter' && focusIdx >= 0 && items[focusIdx]) { items[focusIdx].click(); }
+  });
+
+  // reset on search change
+  document.getElementById('toolsSearchInput').addEventListener('input', () => { focusIdx = -1; });
+  // reset when panel opens
+  const _origOpen = openToolsPanel;
+  openToolsPanel = function(...args) { _origOpen(...args); focusIdx = -1; };
+})();
