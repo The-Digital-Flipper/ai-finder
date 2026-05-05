@@ -355,6 +355,9 @@ function openWorkspace(project) {
   document.getElementById('wsStatusStack').textContent   = project.stack;
   document.getElementById('wsStatusFile').textContent    = firstFile?.name || 'index.js';
 
+  // breadcrumb
+  updateBreadcrumb(project, firstFile?.name || 'index.js');
+
   // build tab bar
   buildWsTabs(['editor', 'terminal', 'preview']);
 
@@ -367,6 +370,19 @@ function openWorkspace(project) {
 
   // boot terminal
   bootTerminal(project);
+
+  // init env panel
+  initEnvPane(project.stack);
+
+  // reset simulated app preview
+  const simApp = document.getElementById('wsSimApp');
+  if (simApp) {
+    simApp.innerHTML = '<div class="ws-sim-loading" id="wsSimLoading"><div class="ws-sim-spinner"></div><span>Starting server…</span></div>';
+  }
+
+  // init git panel
+  gitChanges = [];
+  updateGitPanel();
 }
 
 function closeWorkspace() {
@@ -457,6 +473,7 @@ function renderFileTree(stack) {
       const sbFile = document.getElementById('wsStatusFile');
       if (sbFile) sbFile.textContent = f.name;
       document.getElementById('wsCodeLang') && (document.getElementById('wsCodeLang').textContent = f.lang);
+      updateBreadcrumb(activeProject, f.name);
       openWsPane('editor');
     });
     tree.appendChild(item);
@@ -2083,3 +2100,319 @@ function loadCode(stack) {
     sbFile.textContent = `${file?.name || 'index.js'} · ${label}`;
   }
 }
+
+// ════════════════════════════════════════════════════════════
+// ACCENT COLOR PICKER
+// ════════════════════════════════════════════════════════════
+(function initAccentPicker() {
+  const savedColor = localStorage.getItem('aifinder_accent') || '#3b82f6';
+  document.documentElement.style.setProperty('--accent', savedColor);
+  document.documentElement.style.setProperty('--accent-hov', savedColor);
+
+  function markActiveDot(color) {
+    document.querySelectorAll('.accent-dot').forEach(d => {
+      d.classList.toggle('active', d.dataset.color === color);
+    });
+  }
+  markActiveDot(savedColor);
+
+  document.querySelectorAll('.accent-dot').forEach(dot => {
+    dot.addEventListener('click', e => {
+      e.stopPropagation();
+      const c = dot.dataset.color;
+      document.documentElement.style.setProperty('--accent', c);
+      document.documentElement.style.setProperty('--accent-hov', c);
+      localStorage.setItem('aifinder_accent', c);
+      markActiveDot(c);
+      showToast('Accent color updated', 'info');
+    });
+  });
+})();
+
+// ════════════════════════════════════════════════════════════
+// BREADCRUMB BAR
+// ════════════════════════════════════════════════════════════
+function updateBreadcrumb(project, file) {
+  const bcProject = document.getElementById('wsBcProject');
+  const bcFile    = document.getElementById('wsBcFile');
+  if (bcProject) bcProject.textContent = project?.name || 'project';
+  if (bcFile)    bcFile.textContent = file || 'index.js';
+}
+
+document.getElementById('wsBcHome')?.addEventListener('click', closeWorkspace);
+
+// ════════════════════════════════════════════════════════════
+// ENV VARIABLES EDITOR
+// ════════════════════════════════════════════════════════════
+const ENV_DEFAULTS_BY_STACK = {
+  'Node.js': [
+    { key: 'PORT', val: '3000' },
+    { key: 'NODE_ENV', val: 'development' },
+    { key: 'DATABASE_URL', val: '' },
+    { key: 'SECRET_KEY', val: '' },
+  ],
+  Python: [
+    { key: 'PORT', val: '8080' },
+    { key: 'FLASK_ENV', val: 'development' },
+    { key: 'DATABASE_URL', val: '' },
+  ],
+  React: [
+    { key: 'REACT_APP_API_URL', val: 'http://localhost:3001' },
+    { key: 'REACT_APP_ENV', val: 'development' },
+  ],
+};
+
+function createEnvRow(key = '', val = '') {
+  const list = document.getElementById('wsEnvList');
+  if (!list) return;
+  const row = document.createElement('div');
+  row.className = 'ws-env-row';
+  row.innerHTML = `
+    <input class="ws-env-key" placeholder="KEY" value="${key}" />
+    <span class="ws-env-eq">=</span>
+    <input class="ws-env-val" placeholder="value" value="${val}" type="${key.toLowerCase().includes('secret') || key.toLowerCase().includes('key') || key.toLowerCase().includes('password') ? 'password' : 'text'}" />
+    <button class="ws-env-del" title="Delete">✕</button>`;
+  row.querySelector('.ws-env-del').addEventListener('click', () => row.remove());
+  list.appendChild(row);
+}
+
+function initEnvPane(stack) {
+  const pane = document.getElementById('pane-secrets');
+  if (!pane) return;
+  const existingEditor = pane.querySelector('.ws-env-editor');
+  if (existingEditor) existingEditor.remove();
+
+  const tmpl = document.getElementById('paneSecretsTemplate');
+  if (!tmpl) return;
+  pane.appendChild(tmpl.content.cloneNode(true));
+
+  const defaults = ENV_DEFAULTS_BY_STACK[stack] || ENV_DEFAULTS_BY_STACK['Node.js'];
+  defaults.forEach(({ key, val }) => createEnvRow(key, val));
+
+  document.getElementById('wsEnvAddBtn')?.addEventListener('click', () => createEnvRow());
+  document.getElementById('wsEnvSaveBtn')?.addEventListener('click', () => showToast('🔐 Secrets saved securely', 'success'));
+}
+
+// ════════════════════════════════════════════════════════════
+// TERMINAL COMMAND HISTORY
+// ════════════════════════════════════════════════════════════
+const termHistory = [];
+let termHistoryIdx = -1;
+
+(function initTermHistory() {
+  const termInput = document.getElementById('wsTermInput');
+  if (!termInput) return;
+
+  termInput.addEventListener('keydown', e => {
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (termHistory.length === 0) return;
+      termHistoryIdx = Math.min(termHistoryIdx + 1, termHistory.length - 1);
+      termInput.value = termHistory[termHistoryIdx];
+    }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      termHistoryIdx = Math.max(termHistoryIdx - 1, -1);
+      termInput.value = termHistoryIdx >= 0 ? termHistory[termHistoryIdx] : '';
+    }
+  });
+
+  // patch terminal submit
+  const _origTermSubmit = termInput._submitHandler;
+  termInput.form?.addEventListener('submit', e => { e.preventDefault(); });
+
+  // intercept Enter
+  termInput.addEventListener('keypress', e => {
+    if (e.key === 'Enter' && termInput.value.trim()) {
+      const cmd = termInput.value.trim();
+      if (termHistory[0] !== cmd) termHistory.unshift(cmd);
+      if (termHistory.length > 50) termHistory.pop();
+      termHistoryIdx = -1;
+    }
+  });
+})();
+
+// ════════════════════════════════════════════════════════════
+// PROJECT QUICK ACTION BUTTONS (hover)
+// ════════════════════════════════════════════════════════════
+function addQuickActionsToCard(card, project) {
+  if (card.querySelector('.project-quick-actions')) return;
+  const qa = document.createElement('div');
+  qa.className = 'project-quick-actions';
+  qa.innerHTML = `
+    <button class="pqa-btn" data-action="open">Open</button>
+    <button class="pqa-btn" data-action="terminal">Terminal</button>
+    <button class="pqa-btn" data-action="share">Share</button>`;
+  qa.addEventListener('click', e => {
+    const action = e.target.dataset.action;
+    if (!action) return;
+    if (action === 'open')     { openBuildModal(`Opening ${project.name}…`, project); }
+    if (action === 'terminal') { openBuildModal(`Opening ${project.name}…`, project); setTimeout(() => openWsPane('terminal'), 600); }
+    if (action === 'share')    {
+      const url = `https://${project.name.toLowerCase().replace(/\s+/g,'-')}.repl.co`;
+      navigator.clipboard?.writeText(url).catch(() => {});
+      showToast(`Link copied: ${url}`, 'success');
+    }
+  });
+  card.appendChild(qa);
+}
+
+// patch renderProjects to add quick actions
+const _renderProjectsForQA = renderProjects;
+function renderProjects(filter) {
+  _renderProjectsForQA(filter);
+  document.querySelectorAll('.project-card').forEach(card => {
+    const nameEl = card.querySelector('.project-name');
+    if (!nameEl) return;
+    const proj = getProjects().find(p => p.name === nameEl.textContent);
+    if (proj) addQuickActionsToCard(card, proj);
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// CPU / MEMORY METER IN STATUS BAR
+// ════════════════════════════════════════════════════════════
+(function initMeters() {
+  const sb = document.getElementById('wsStatusbar');
+  if (!sb) return;
+  const right = sb.querySelector('.ws-status-right');
+  if (!right) return;
+
+  const cpuSpan = document.createElement('span');
+  cpuSpan.className = 'ws-status-item ws-status-meter';
+  cpuSpan.innerHTML = `<span id="cpuLabel" style="font-size:10px">CPU</span><div class="ws-meter-bar"><div class="ws-meter-fill" id="cpuFill" style="width:14%"></div></div><span id="cpuPct">14%</span>`;
+
+  const memSpan = document.createElement('span');
+  memSpan.className = 'ws-status-item ws-status-meter';
+  memSpan.innerHTML = `<span style="font-size:10px">MEM</span><div class="ws-meter-bar"><div class="ws-meter-fill" id="memFill" style="width:38%"></div></div><span id="memMB">97 MB</span>`;
+
+  right.insertBefore(memSpan, right.firstChild);
+  right.insertBefore(cpuSpan, right.firstChild);
+
+  let cpu = 14, mem = 97;
+  setInterval(() => {
+    if (!workspace.classList.contains('open')) return;
+    cpu = Math.max(2, Math.min(95, cpu + (Math.random() * 8 - 4)));
+    mem = Math.max(60, Math.min(240, mem + (Math.random() * 8 - 4)));
+    const cpuFill = document.getElementById('cpuFill');
+    const memFill = document.getElementById('memFill');
+    if (cpuFill) {
+      cpuFill.style.width = cpu.toFixed(0) + '%';
+      cpuFill.className = `ws-meter-fill${cpu > 75 ? ' high' : cpu > 50 ? ' warn' : ''}`;
+    }
+    if (memFill) { memFill.style.width = (mem / 256 * 100).toFixed(0) + '%'; }
+    const cpuEl = document.getElementById('cpuPct');
+    const memEl = document.getElementById('memMB');
+    if (cpuEl) cpuEl.textContent = cpu.toFixed(0) + '%';
+    if (memEl) memEl.textContent = mem.toFixed(0) + ' MB';
+  }, 2000);
+})();
+
+// ════════════════════════════════════════════════════════════
+// COMMAND PALETTE SEARCH HISTORY
+// ════════════════════════════════════════════════════════════
+(function initPaletteHistory() {
+  const PALETTE_HISTORY_KEY = 'aifinder_palette_history';
+  function getPaletteHistory() {
+    try { return JSON.parse(localStorage.getItem(PALETTE_HISTORY_KEY) || '[]'); } catch { return []; }
+  }
+  function savePaletteHistory(arr) {
+    localStorage.setItem(PALETTE_HISTORY_KEY, JSON.stringify(arr.slice(0, 5)));
+  }
+  function renderHistory() {
+    const jump = document.getElementById('toolsJump');
+    if (!jump) return;
+    const hist = getPaletteHistory();
+    const existingHist = document.getElementById('toolsHistory');
+    if (existingHist) existingHist.remove();
+    if (hist.length === 0) return;
+    const section = document.createElement('div');
+    section.id = 'toolsHistory';
+    section.innerHTML = `<div class="tools-section-title">Recent</div>` +
+      hist.map(q => `<div class="tools-history-item" data-q="${q}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;color:var(--text-dim);flex-shrink:0"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>${q}</span></div>`).join('');
+    jump.insertAdjacentElement('beforebegin', section);
+
+    section.querySelectorAll('.tools-history-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const search = document.getElementById('toolsSearchInput');
+        if (search) { search.value = item.dataset.q; search.dispatchEvent(new Event('input')); }
+      });
+    });
+  }
+
+  const search = document.getElementById('toolsSearchInput');
+  search?.addEventListener('keypress', e => {
+    if (e.key === 'Enter' && search.value.trim()) {
+      const hist = getPaletteHistory();
+      const q = search.value.trim();
+      savePaletteHistory([q, ...hist.filter(h => h !== q)]);
+    }
+  });
+
+  // show history when panel opens
+  const _openToolsPanelPatched = openToolsPanel;
+  openToolsPanel = function(...args) {
+    _openToolsPanelPatched(...args);
+    setTimeout(renderHistory, 50);
+  };
+})();
+
+// ════════════════════════════════════════════════════════════
+// DRAG TO REORDER PROJECTS
+// ════════════════════════════════════════════════════════════
+(function initDragReorder() {
+  let dragSrc = null;
+
+  function handleDragStart(e) {
+    dragSrc = this;
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+  }
+  function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    this.classList.add('drag-over');
+  }
+  function handleDragLeave() { this.classList.remove('drag-over'); }
+  function handleDrop(e) {
+    e.stopPropagation();
+    this.classList.remove('drag-over');
+    if (dragSrc === this) return;
+
+    // swap in projects array
+    const projects = getProjects();
+    const srcName  = dragSrc.querySelector('.project-name')?.textContent;
+    const dstName  = this.querySelector('.project-name')?.textContent;
+    const si = projects.findIndex(p => p.name === srcName);
+    const di = projects.findIndex(p => p.name === dstName);
+    if (si !== -1 && di !== -1) {
+      [projects[si], projects[di]] = [projects[di], projects[si]];
+      saveProjects(projects);
+      renderProjects(currentTab);
+    }
+  }
+  function handleDragEnd() {
+    document.querySelectorAll('.project-card').forEach(c => {
+      c.classList.remove('dragging', 'drag-over');
+    });
+    dragSrc = null;
+  }
+
+  function attachDragHandlers() {
+    document.querySelectorAll('.project-card').forEach(card => {
+      card.setAttribute('draggable', 'true');
+      card.addEventListener('dragstart',  handleDragStart);
+      card.addEventListener('dragover',   handleDragOver);
+      card.addEventListener('dragleave',  handleDragLeave);
+      card.addEventListener('drop',       handleDrop);
+      card.addEventListener('dragend',    handleDragEnd);
+    });
+  }
+
+  // attach after each render
+  const _rp = renderProjects;
+  function renderProjects(filter) {
+    _rp(filter);
+    attachDragHandlers();
+  }
+})();

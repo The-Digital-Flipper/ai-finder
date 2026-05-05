@@ -2615,3 +2615,182 @@ body.light-mode *::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.18); }
   border-radius: 10px; font-size: 10px; font-weight: 600;
   margin-top: 6px;
 }
+
+/* ══════════════════════════════
+   BREADCRUMB BAR
+══════════════════════════════ */
+.ws-breadcrumb-bar {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px;
+  height: 24px;
+  background: #161616;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+.workspace.open .ws-breadcrumb-bar { display: flex; }
+.ws-bc-home { background: none; border: none; color: var(--text-muted); font-size: 11px; font-family: inherit; cursor: pointer; padding: 0; }
+.ws-bc-home:hover { color: var(--accent); text-decoration: underline; }
+.ws-bc-sep { color: var(--text-dim); }
+.ws-bc-project { color: var(--text-muted); }
+.ws-bc-file { color: var(--text); font-weight: 500; }
+
+/* ══════════════════════════════
+   ACCENT COLOR PICKER
+══════════════════════════════ */
+.profile-accent-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px;
+}
+.profile-accent-label { font-size: 12px; color: var(--text-muted); }
+.profile-accent-dots { display: flex; gap: 6px; }
+.accent-dot {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer; padding: 0;
+  transition: transform 0.15s, border-color 0.15s;
+}
+.accent-dot:hover { transform: scale(1.2); }
+.accent-dot.active { border-color: white; }
+
+/* ══════════════════════════════
+   ENV VARIABLES EDITOR
+══════════════════════════════ */
+.ws-env-editor {
+  display: flex; flex-direction: column; gap: 0;
+  padding: 16px;
+  height: 100%;
+}
+.ws-env-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.ws-env-title { font-size: 13px; font-weight: 700; color: var(--text); }
+.ws-env-add-btn {
+  padding: 5px 10px;
+  background: rgba(59,130,246,0.12);
+  border: 1px solid rgba(59,130,246,0.25);
+  border-radius: var(--radius-sm);
+  color: var(--accent); font-size: 12px; font-family: inherit;
+  cursor: pointer; transition: background 0.15s;
+}
+.ws-env-add-btn:hover { background: rgba(59,130,246,0.22); }
+
+.ws-env-list { display: flex; flex-direction: column; gap: 6px; flex: 1; overflow-y: auto; }
+
+.ws-env-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.15s;
+}
+.ws-env-row:focus-within { border-color: rgba(59,130,246,0.4); }
+.ws-env-key {
+  width: 120px; flex-shrink: 0;
+  background: none; border: none; outline: none;
+  color: #22c55e; font-size: 11px; font-family: 'Courier New', monospace;
+  font-weight: 700;
+}
+.ws-env-eq { color: var(--text-dim); font-size: 12px; flex-shrink: 0; }
+.ws-env-val {
+  flex: 1;
+  background: none; border: none; outline: none;
+  color: var(--text-muted); font-size: 11px; font-family: 'Courier New', monospace;
+}
+.ws-env-del {
+  background: none; border: none; color: var(--text-dim);
+  cursor: pointer; font-size: 13px; padding: 0 3px;
+  transition: color 0.12s;
+}
+.ws-env-del:hover { color: #ef4444; }
+
+.ws-env-save-btn {
+  margin-top: 12px;
+  padding: 8px;
+  background: rgba(34,197,94,0.1);
+  border: 1px solid rgba(34,197,94,0.25);
+  border-radius: var(--radius-sm);
+  color: #22c55e; font-size: 12px; font-weight: 600; font-family: inherit;
+  cursor: pointer; transition: background 0.15s;
+}
+.ws-env-save-btn:hover { background: rgba(34,197,94,0.2); }
+
+/* ══════════════════════════════
+   PROJECT QUICK ACTIONS (hover)
+══════════════════════════════ */
+.project-card { position: relative; overflow: hidden; }
+.project-quick-actions {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  display: flex;
+  justify-content: center; gap: 4px;
+  padding: 6px;
+  background: linear-gradient(to top, var(--bg3) 60%, transparent);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.18s, transform 0.18s;
+  pointer-events: none;
+}
+.project-card:hover .project-quick-actions {
+  opacity: 1; transform: translateY(0); pointer-events: all;
+}
+.pqa-btn {
+  padding: 3px 9px;
+  background: var(--bg4);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  color: var(--text-muted); font-size: 11px; font-weight: 500;
+  cursor: pointer; font-family: inherit;
+  transition: background 0.12s, color 0.12s;
+}
+.pqa-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
+
+/* ══════════════════════════════
+   CPU / MEMORY METER
+══════════════════════════════ */
+.ws-status-meter {
+  display: flex; align-items: center; gap: 4px;
+}
+.ws-meter-bar {
+  width: 28px; height: 4px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.ws-meter-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: #22c55e;
+  transition: width 0.6s ease;
+}
+.ws-meter-fill.warn  { background: #fbbf24; }
+.ws-meter-fill.high  { background: #ef4444; }
+
+/* ══════════════════════════════
+   DRAG REORDER
+══════════════════════════════ */
+.project-card.dragging {
+  opacity: 0.45;
+  border: 1px dashed var(--accent) !important;
+  transform: scale(0.97);
+}
+.project-card.drag-over {
+  border-color: var(--accent) !important;
+  background: rgba(59,130,246,0.08) !important;
+}
+
+/* ══════════════════════════════
+   PALETTE HISTORY ITEMS
+══════════════════════════════ */
+.tools-history-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 14px;
+  font-size: 13px; color: var(--text-muted);
+  cursor: pointer; transition: background 0.1s;
+}
+.tools-history-item:hover { background: var(--bg3); color: var(--text); }
+

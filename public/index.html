@@ -53,6 +53,17 @@
         <button class="profile-item" id="themeToggle">🌙 Toggle Theme</button>
         <button class="profile-item">💳 Billing &amp; Plans</button>
         <div class="profile-sep"></div>
+        <div class="profile-accent-row">
+          <span class="profile-accent-label">Accent</span>
+          <div class="profile-accent-dots">
+            <button class="accent-dot" data-color="#3b82f6" style="background:#3b82f6" title="Blue"></button>
+            <button class="accent-dot" data-color="#8b5cf6" style="background:#8b5cf6" title="Purple"></button>
+            <button class="accent-dot" data-color="#10b981" style="background:#10b981" title="Green"></button>
+            <button class="accent-dot" data-color="#f59e0b" style="background:#f59e0b" title="Amber"></button>
+            <button class="accent-dot" data-color="#ec4899" style="background:#ec4899" title="Pink"></button>
+          </div>
+        </div>
+        <div class="profile-sep"></div>
         <button class="profile-item profile-signout">🚪 Sign Out</button>
       </div>
     </div>
@@ -446,6 +457,27 @@
       </div>
       <div class="ws-notif-list" id="wsNotifList"></div>
     </div>
+
+    <!-- Breadcrumb bar -->
+    <div class="ws-breadcrumb-bar" id="wsBreadcrumbBar">
+      <button class="ws-bc-home" id="wsBcHome">Home</button>
+      <span class="ws-bc-sep">/</span>
+      <span class="ws-bc-project" id="wsBcProject">project</span>
+      <span class="ws-bc-sep">/</span>
+      <span class="ws-bc-file" id="wsBcFile">index.js</span>
+    </div>
+
+    <!-- Secrets/Env panel (pane) -->
+    <template id="paneSecretsTemplate">
+      <div class="ws-env-editor" id="wsEnvEditor">
+        <div class="ws-env-header">
+          <span class="ws-env-title">🔐 Environment Variables</span>
+          <button class="ws-env-add-btn" id="wsEnvAddBtn">+ Add Variable</button>
+        </div>
+        <div class="ws-env-list" id="wsEnvList"></div>
+        <button class="ws-env-save-btn" id="wsEnvSaveBtn">Save All</button>
+      </div>
+    </template>
 
     <!-- Body -->
     <div class="ws-body">
