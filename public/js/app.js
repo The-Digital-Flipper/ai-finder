@@ -1,431 +1,297 @@
-/* ========================
-   TUBE SHORTS PRO — APP.JS
-   ======================== */
+/* ========================================
+   AI FINDER — REPLIT-STYLE DASHBOARD JS
+   ======================================== */
 
-// ── Navigation ──────────────────────────────────────────────
-const navItems  = document.querySelectorAll('.nav-item');
-const pages     = document.querySelectorAll('.page');
-const pageTitle = document.getElementById('pageTitle');
+// ── Sidebar Navigation ─────────────────────────────────────
+const navItems = document.querySelectorAll('.nav-item');
+const sections = document.querySelectorAll('.section');
 
-const pageTitles = {
-  dashboard:  'Dashboard',
-  titles:     'Title Optimizer',
-  thumbnails: 'Thumbnail Studio',
-  analytics:  'Analytics',
-  seo:        'SEO Checker',
-};
-
-function navigateTo(pageId) {
-  navItems.forEach(n => n.classList.toggle('active', n.dataset.page === pageId));
-  pages.forEach(p => p.classList.toggle('active', p.id === `page-${pageId}`));
-  pageTitle.textContent = pageTitles[pageId] || pageId;
-
-  if (pageId === 'analytics' && !document.getElementById('analyticsContent').querySelector('.analytics-grid')) {
-    loadAnalytics();
-  }
+function navigateTo(sectionId) {
+  navItems.forEach(n => n.classList.toggle('active', n.dataset.section === sectionId));
+  sections.forEach(s => s.classList.toggle('active', s.id === `section-${sectionId}`));
 }
 
 navItems.forEach(n => n.addEventListener('click', e => {
   e.preventDefault();
-  navigateTo(n.dataset.page);
+  navigateTo(n.dataset.section);
 }));
 
-// Buttons with data-goto
-document.querySelectorAll('[data-goto]').forEach(btn => {
-  btn.addEventListener('click', () => navigateTo(btn.dataset.goto));
-});
+// ── Projects Store ─────────────────────────────────────────
+const STORAGE_KEY = 'aifinder_projects';
 
-// Mobile menu toggle
-const menuToggle = document.getElementById('menuToggle');
-const sidebar    = document.getElementById('sidebar');
-menuToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
-
-// ── Dashboard: load top videos ───────────────────────────────
-async function loadTopVideos() {
-  try {
-    const res = await fetch('/api/analytics/overview');
-    const data = await res.json();
-    const container = document.getElementById('topVideos');
-    container.innerHTML = '';
-    data.topVideos.forEach((v, i) => {
-      const row = document.createElement('div');
-      row.className = 'video-row';
-      row.innerHTML = `
-        <span class="video-rank">#${i + 1}</span>
-        <div class="video-info">
-          <div class="video-title">${v.title}</div>
-          <div class="video-meta">
-            <span>👁 ${v.views.toLocaleString()} views</span>
-            <span>❤ ${v.likes.toLocaleString()} likes</span>
-          </div>
-        </div>
-        <span class="video-ctr">${v.ctr} CTR</span>
-      `;
-      container.appendChild(row);
-    });
-  } catch {
-    document.getElementById('topVideos').innerHTML = '<p style="color:var(--text-muted);font-size:13px;padding:12px 0;">Could not load data.</p>';
-  }
+function getProjects() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultProjects(); }
+  catch { return defaultProjects(); }
 }
 
-loadTopVideos();
+function saveProjects(projects) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+}
 
-// ── Title Optimizer ──────────────────────────────────────────
-document.getElementById('titleOptimizeBtn').addEventListener('click', async () => {
-  const topic = document.getElementById('titleTopic').value.trim();
-  if (!topic) { alert('Please enter a topic first.'); return; }
+function defaultProjects() {
+  return [
+    { id: 1, name: 'tube-shorts-pro',    stack: 'Node.js',    icon: '🎬', bg: '#1a1a40', desc: 'YouTube Shorts optimizer', updatedAt: '2 days ago' },
+    { id: 2, name: 'shopify-scraper',    stack: 'Python',     icon: '🛒', bg: '#1a3326', desc: 'E-commerce product crawler', updatedAt: '4 days ago' },
+    { id: 3, name: 'discord-mod-bot',    stack: 'Node.js',    icon: '🤖', bg: '#1e2151', desc: 'Moderation + slash commands', updatedAt: '1 week ago' },
+    { id: 4, name: 'ai-finder-api',      stack: 'Node.js',    icon: '🔍', bg: '#2d1b4e', desc: 'AI tool discovery API', updatedAt: '2 weeks ago' },
+    { id: 5, name: 'crypto-dashboard',   stack: 'React',      icon: '📊', bg: '#1a2e1a', desc: 'Real-time price tracker', updatedAt: '3 weeks ago' },
+    { id: 6, name: 'todo-cli',           stack: 'Python',     icon: '✅', bg: '#2d1a00', desc: 'Command-line task manager', updatedAt: '1 month ago' },
+  ];
+}
 
-  const btn = document.getElementById('titleOptimizeBtn');
-  btn.disabled = true;
-  btn.textContent = 'Generating…';
+const stackIcons = {
+  'Node.js': '🟢', Python: '🐍', React: '⚛️',
+  'HTML/CSS/JS': '🌐', Go: '🐹', Rust: '🦀',
+};
 
-  const resultsEl = document.getElementById('titleResults');
-  resultsEl.innerHTML = '<div class="loading-spinner"></div>';
-  resultsEl.classList.remove('hidden');
+// ── Render Projects ─────────────────────────────────────────
+function renderProjects(filter = 'all') {
+  const grid = document.getElementById('projectsGrid');
+  let projects = getProjects();
 
-  try {
-    const res  = await fetch('/api/titles/optimize', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ topic }),
+  if (filter === 'apps')  projects = projects.filter(p => !p.name.includes('bot') && !p.name.includes('api'));
+  if (filter === 'bots')  projects = projects.filter(p => p.name.includes('bot'));
+  if (filter === 'apis')  projects = projects.filter(p => p.name.includes('api'));
+
+  grid.innerHTML = '';
+
+  projects.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'project-card';
+    card.innerHTML = `
+      <div class="project-card-icon" style="background:${p.bg}">${p.icon}</div>
+      <div class="project-card-info">
+        <div class="project-name">${p.name}</div>
+        <div class="project-meta">${stackIcons[p.stack] || ''} ${p.stack} · ${p.updatedAt}</div>
+      </div>
+      <div class="project-card-actions">
+        <button class="card-action-btn delete-btn" data-id="${p.id}" title="Delete">✕</button>
+      </div>
+    `;
+    card.addEventListener('click', e => {
+      if (e.target.closest('.delete-btn')) return;
+      openBuildModal(`Opening ${p.name}…`, p);
     });
-    const data = await res.json();
-    resultsEl.innerHTML = '';
+    grid.appendChild(card);
+  });
 
-    data.suggestions.forEach(({ title, score, tips }) => {
-      const card = document.createElement('div');
-      card.className = 'title-result-card';
-      card.innerHTML = `
-        <div class="result-title">${title}</div>
-        <div class="score-bar-wrap">
-          <div class="score-bar-track">
-            <div class="score-bar-fill" style="width:${score}%"></div>
-          </div>
-          <span class="score-num">${score}/100</span>
-        </div>
-        <ul class="result-tips">
-          ${tips.map(t => `<li>${t}</li>`).join('')}
-        </ul>
-        <button class="copy-btn" data-title="${title.replace(/"/g, '&quot;')}">Copy title</button>
-      `;
-      resultsEl.appendChild(card);
-    });
-
-    resultsEl.querySelectorAll('.copy-btn').forEach(b => {
-      b.addEventListener('click', () => {
-        navigator.clipboard.writeText(b.dataset.title).then(() => {
-          b.textContent = 'Copied!';
-          setTimeout(() => { b.textContent = 'Copy title'; }, 1500);
-        });
+  // Add project cards also to templates section
+  const templatesGrid = document.querySelector('#section-templates .projects-grid');
+  if (templatesGrid) {
+    templatesGrid.querySelectorAll('.template-card').forEach(tc => {
+      tc.addEventListener('click', () => {
+        const tpl = tc.dataset.tpl;
+        document.getElementById('promptInput').value = tpl;
+        navigateTo('home');
+        document.getElementById('promptInput').focus();
       });
     });
-  } catch {
-    resultsEl.innerHTML = '<p style="color:var(--red);padding:12px">Error fetching suggestions.</p>';
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Generate Titles';
   }
+
+  // Delete buttons
+  grid.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const id = parseInt(btn.dataset.id);
+      const projects = getProjects().filter(p => p.id !== id);
+      saveProjects(projects);
+      renderProjects(currentTab);
+    });
+  });
+}
+
+let currentTab = 'all';
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentTab = tab.dataset.tab;
+    renderProjects(currentTab);
+  });
 });
 
-document.getElementById('titleTopic').addEventListener('keypress', e => {
-  if (e.key === 'Enter') document.getElementById('titleOptimizeBtn').click();
+renderProjects();
+
+// ── Limit banner close ──────────────────────────────────────
+document.getElementById('limitClose').addEventListener('click', () => {
+  document.getElementById('limitBanner').style.display = 'none';
 });
 
-// ── Thumbnail Studio ─────────────────────────────────────────
-document.getElementById('thumbGenerateBtn').addEventListener('click', async () => {
-  const topic = document.getElementById('thumbTopic').value.trim();
-  const mood  = document.getElementById('thumbMood').value;
-  if (!topic) { alert('Please enter a video topic.'); return; }
+// ── Create Project Modal ────────────────────────────────────
+const modalOverlay = document.getElementById('modalOverlay');
+const newProjectName = document.getElementById('newProjectName');
+const newProjectDesc = document.getElementById('newProjectDesc');
 
-  const btn = document.getElementById('thumbGenerateBtn');
-  btn.disabled = true; btn.textContent = 'Loading…';
+function openCreateModal(prefillName = '') {
+  newProjectName.value = prefillName;
+  newProjectDesc.value = '';
+  modalOverlay.classList.add('open');
+  setTimeout(() => newProjectName.focus(), 100);
+}
 
-  const resultsEl = document.getElementById('thumbResults');
-  resultsEl.innerHTML = '<div class="loading-spinner"></div>';
-  resultsEl.classList.remove('hidden');
+function closeCreateModal() {
+  modalOverlay.classList.remove('open');
+}
+
+document.getElementById('newProjectBtn').addEventListener('click', () => openCreateModal());
+document.getElementById('sidebarCreateBtn').addEventListener('click', () => openCreateModal());
+document.getElementById('modalClose').addEventListener('click', closeCreateModal);
+document.getElementById('modalCancelBtn').addEventListener('click', closeCreateModal);
+modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeCreateModal(); });
+
+// Stack picker
+let selectedStack = 'Node.js';
+document.querySelectorAll('.stack-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.stack-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedStack = btn.dataset.stack;
+  });
+});
+
+// Create project confirm
+document.getElementById('modalCreateBtn').addEventListener('click', () => {
+  const name = newProjectName.value.trim() || 'my-project';
+  const desc = newProjectDesc.value.trim() || `${selectedStack} project`;
+  const bgMap = { 'Node.js':'#1a1a40', Python:'#1a3326', React:'#0a2840', 'HTML/CSS/JS':'#1a2d1a', Go:'#002d2d', Rust:'#2d1a00' };
+  const iconMap2 = { 'Node.js':'🟢', Python:'🐍', React:'⚛️', 'HTML/CSS/JS':'🌐', Go:'🐹', Rust:'🦀' };
+
+  const projects = getProjects();
+  const newP = {
+    id: Date.now(),
+    name: name.toLowerCase().replace(/\s+/g, '-'),
+    stack: selectedStack,
+    icon: iconMap2[selectedStack] || '📁',
+    bg: bgMap[selectedStack] || '#1a1a2e',
+    desc,
+    updatedAt: 'just now',
+  };
+  projects.unshift(newP);
+  saveProjects(projects);
+  closeCreateModal();
+  renderProjects(currentTab);
+  openBuildModal(`Creating ${newP.name}…`, newP);
+});
+
+// Enter key in modal
+newProjectName.addEventListener('keypress', e => {
+  if (e.key === 'Enter') document.getElementById('modalCreateBtn').click();
+});
+
+// ── Build Output Modal ──────────────────────────────────────
+const buildOverlay = document.getElementById('buildOverlay');
+const buildTerminal = document.getElementById('buildTerminal');
+const buildActions  = document.getElementById('buildActions');
+const buildModalTitle = document.getElementById('buildModalTitle');
+
+function openBuildModal(title, project) {
+  buildModalTitle.textContent = title;
+  buildTerminal.innerHTML = '';
+  buildActions.style.display = 'none';
+  buildOverlay.classList.add('open');
+
+  const steps = [
+    { text: `Initializing ${project.name}…`, cls: 't-info', delay: 0 },
+    { text: `Setting up ${project.stack} environment`, cls: '', delay: 400 },
+    { text: 'Installing dependencies…', cls: '', delay: 900 },
+    { text: 'npm install  (or pip install)  ✓', cls: 't-success', delay: 1600 },
+    { text: 'Configuring dev server…', cls: '', delay: 2100 },
+    { text: 'Running health check…', cls: 't-info', delay: 2700 },
+    { text: `✓ ${project.name} is ready on port 3000`, cls: 't-success', delay: 3300 },
+  ];
+
+  steps.forEach(({ text, cls, delay }) => {
+    setTimeout(() => {
+      const line = document.createElement('div');
+      line.className = `terminal-line ${cls}`;
+      line.innerHTML = `<span class="t-prompt">$</span> ${text}`;
+      buildTerminal.appendChild(line);
+      buildTerminal.scrollTop = buildTerminal.scrollHeight;
+      if (delay === 3300) {
+        setTimeout(() => { buildActions.style.display = 'flex'; }, 400);
+      }
+    }, delay);
+  });
+}
+
+document.getElementById('buildModalClose').addEventListener('click', () => {
+  buildOverlay.classList.remove('open');
+});
+buildOverlay.addEventListener('click', e => {
+  if (e.target === buildOverlay) buildOverlay.classList.remove('open');
+});
+document.getElementById('openProjectBtn').addEventListener('click', () => {
+  buildOverlay.classList.remove('open');
+});
+
+// ── AI Prompt Submit ────────────────────────────────────────
+async function submitPrompt(mode = 'build') {
+  const text = document.getElementById('promptInput').value.trim();
+  if (!text) {
+    document.getElementById('promptInput').focus();
+    return;
+  }
+
+  // Slugify as project name
+  const name = text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .split(/\s+/)
+    .slice(0, 4)
+    .join('-');
+
+  if (mode === 'plan') {
+    openBuildModal(`Planning: ${name}`, { name, stack: 'Node.js' });
+    return;
+  }
+
+  // Build mode — call API
+  const fakeProject = { name, stack: 'Node.js', icon: '✨', bg: '#1e1a40', desc: text, updatedAt: 'just now' };
+  openBuildModal(`Building ${name}…`, fakeProject);
 
   try {
-    const res  = await fetch('/api/thumbnails/suggestions', {
+    await fetch('/api/build', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ topic, mood }),
+      body: JSON.stringify({ prompt: text }),
     });
-    const data = await res.json();
-
-    const swatches = data.palette.map(c =>
-      `<div class="swatch" style="background:${c}" title="${c}"></div>`
-    ).join('');
-
-    const overlayItems = data.overlays.map(o => `<li>${o}</li>`).join('');
-    const tipItems     = data.tips.map(t => `<li>${t}</li>`).join('');
-
-    resultsEl.innerHTML = `
-      <div class="thumb-result">
-        <div class="thumb-section">
-          <h4>Color Palette</h4>
-          <div class="palette-swatches">${swatches}</div>
-          <p style="font-size:11px;color:var(--text-muted);margin-top:8px">Palette: <strong>${mood.replace('_', ' ')}</strong></p>
-
-          <h4 style="margin-top:18px">Font Pairing</h4>
-          <div class="font-pair">
-            <div class="font-tag">
-              <span class="ftype">Headline</span>
-              ${data.font.headline}
-            </div>
-            <div class="font-tag">
-              <span class="ftype">Body / Sub</span>
-              ${data.font.sub}
-            </div>
-          </div>
-
-          <h4 style="margin-top:18px">Suggested CTA Text</h4>
-          <p style="font-size:14px;font-weight:700;color:var(--accent)">${data.ctaText}</p>
-        </div>
-
-        <div class="thumb-section">
-          <h4>Overlay Ideas</h4>
-          <ul class="overlay-list">${overlayItems}</ul>
-
-          <h4 style="margin-top:18px">Best Practice Tips</h4>
-          <ul class="tips-list">${tipItems}</ul>
-        </div>
-      </div>
-    `;
   } catch {
-    resultsEl.innerHTML = '<p style="color:var(--red);padding:12px">Error loading suggestions.</p>';
-  } finally {
-    btn.disabled = false; btn.textContent = 'Get Suggestions';
+    // server might not have this route yet — terminal output is sufficient UX
   }
+
+  // Save as new project
+  const projects = getProjects();
+  projects.unshift({ ...fakeProject, id: Date.now() });
+  saveProjects(projects);
+  renderProjects(currentTab);
+  document.getElementById('promptInput').value = '';
+}
+
+document.getElementById('btnSubmit').addEventListener('click', () => submitPrompt('build'));
+document.getElementById('btnPlan').addEventListener('click',   () => submitPrompt('plan'));
+
+document.getElementById('promptInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) submitPrompt('build');
 });
 
-// ── Analytics ────────────────────────────────────────────────
-async function loadAnalytics() {
-  const container = document.getElementById('analyticsContent');
-  try {
-    const [ovRes, tsRes] = await Promise.all([
-      fetch('/api/analytics/overview'),
-      fetch('/api/analytics/timeseries?days=14'),
-    ]);
-    const ov = await ovRes.json();
-    const ts = await tsRes.json();
-
-    const audience = ov.audienceSplit;
-    const audienceBars = Object.entries(audience).map(([k, v]) => `
-      <div class="audience-bar-row">
-        <span class="audience-bar-label">${k}</span>
-        <div class="audience-bar-track">
-          <div class="audience-bar-fill" style="width:${v}%"></div>
-        </div>
-        <span class="audience-bar-pct">${v}%</span>
-      </div>
-    `).join('');
-
-    const topRows = ov.topVideos.map((v, i) => `
-      <div class="video-row">
-        <span class="video-rank">#${i + 1}</span>
-        <div class="video-info">
-          <div class="video-title">${v.title}</div>
-          <div class="video-meta">
-            <span>👁 ${v.views.toLocaleString()}</span>
-            <span>❤ ${v.likes.toLocaleString()}</span>
-          </div>
-        </div>
-        <span class="video-ctr">${v.ctr}</span>
-      </div>
-    `).join('');
-
-    container.innerHTML = `
-      <div class="analytics-grid" style="margin-bottom:14px">
-        <div class="analytics-card">
-          <h4>Views Over Time (14 days)</h4>
-          <canvas id="chartCanvas"></canvas>
-        </div>
-        <div class="analytics-card">
-          <h4>Audience by Device</h4>
-          <div class="audience-bar-list">${audienceBars}</div>
-        </div>
-      </div>
-      <h3 class="section-title">Top Videos</h3>
-      <div class="top-videos">${topRows}</div>
-    `;
-
-    drawChart(ts.series);
-  } catch {
-    container.innerHTML = '<p style="color:var(--red);padding:16px">Could not load analytics.</p>';
-  }
-}
-
-function drawChart(series) {
-  const canvas = document.getElementById('chartCanvas');
-  if (!canvas) return;
-  const ctx    = canvas.getContext('2d');
-  const dpr    = window.devicePixelRatio || 1;
-  const w      = canvas.offsetWidth;
-  const h      = canvas.offsetHeight;
-  canvas.width  = w * dpr;
-  canvas.height = h * dpr;
-  ctx.scale(dpr, dpr);
-
-  const values = series.map(d => d.views);
-  const min    = Math.min(...values);
-  const max    = Math.max(...values);
-  const range  = max - min || 1;
-  const pad    = { top: 10, right: 10, bottom: 20, left: 36 };
-  const cw     = w - pad.left - pad.right;
-  const ch     = h - pad.top  - pad.bottom;
-
-  ctx.clearRect(0, 0, w, h);
-
-  // Grid lines
-  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
-  ctx.lineWidth = 1;
-  for (let i = 0; i <= 4; i++) {
-    const y = pad.top + (ch / 4) * i;
-    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + cw, y); ctx.stroke();
-  }
-
-  // Y axis labels
-  ctx.fillStyle = 'rgba(139,143,168,0.7)';
-  ctx.font = `10px Inter`;
-  ctx.textAlign = 'right';
-  for (let i = 0; i <= 4; i++) {
-    const val = max - (range / 4) * i;
-    const y   = pad.top + (ch / 4) * i + 3;
-    ctx.fillText(Math.round(val).toLocaleString(), pad.left - 4, y);
-  }
-
-  // Gradient fill
-  const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + ch);
-  grad.addColorStop(0, 'rgba(192,132,252,0.3)');
-  grad.addColorStop(1, 'rgba(192,132,252,0)');
-
-  ctx.beginPath();
-  series.forEach((d, i) => {
-    const x = pad.left + (i / (series.length - 1)) * cw;
-    const y = pad.top  + ch - ((d.views - min) / range) * ch;
-    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+// ── Template chips ──────────────────────────────────────────
+document.querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.getElementById('promptInput').value = chip.dataset.tpl;
+    document.getElementById('promptInput').focus();
   });
-  ctx.lineTo(pad.left + cw, pad.top + ch);
-  ctx.lineTo(pad.left, pad.top + ch);
-  ctx.closePath();
-  ctx.fillStyle = grad;
-  ctx.fill();
-
-  // Line
-  ctx.beginPath();
-  ctx.strokeStyle = '#c084fc';
-  ctx.lineWidth = 2;
-  series.forEach((d, i) => {
-    const x = pad.left + (i / (series.length - 1)) * cw;
-    const y = pad.top  + ch - ((d.views - min) / range) * ch;
-    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-  });
-  ctx.stroke();
-
-  // Dots
-  ctx.fillStyle = '#c084fc';
-  series.forEach((d, i) => {
-    if (i % 3 !== 0) return;
-    const x = pad.left + (i / (series.length - 1)) * cw;
-    const y = pad.top  + ch - ((d.views - min) / range) * ch;
-    ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill();
-  });
-}
-
-// ── SEO Checker ──────────────────────────────────────────────
-document.getElementById('seoCheckBtn').addEventListener('click', async () => {
-  const title = document.getElementById('seoTitle').value.trim();
-  const desc  = document.getElementById('seoDesc').value.trim();
-  const tags  = document.getElementById('seoTags').value.trim();
-  if (!title) { alert('Please enter a video title.'); return; }
-
-  const btn = document.getElementById('seoCheckBtn');
-  btn.disabled = true; btn.textContent = 'Checking…';
-
-  const resultsEl = document.getElementById('seoResults');
-  resultsEl.innerHTML = '<div class="loading-spinner"></div>';
-  resultsEl.classList.remove('hidden');
-
-  try {
-    const params = new URLSearchParams({ title, description: desc, tags });
-    const res    = await fetch(`/api/analytics/seo-score?${params}`);
-    const data   = await res.json();
-
-    const iconMap = { pass: '✓', fail: '✗', warn: '⚠' };
-    const classMap = { pass: 'seo-icon-pass', fail: 'seo-icon-fail', warn: 'seo-icon-warn' };
-
-    const items = data.breakdown.map(b => `
-      <div class="seo-item">
-        <span class="${classMap[b.status]}">${iconMap[b.status]}</span>
-        <div>
-          <div class="seo-item-text">${b.item}</div>
-          ${b.hint ? `<div class="seo-item-hint">${b.hint}</div>` : ''}
-        </div>
-      </div>
-    `).join('');
-
-    resultsEl.innerHTML = `
-      <div class="card">
-        <div class="seo-score-ring">
-          <div class="seo-score-num">${data.score}</div>
-          <div class="seo-score-label">SEO Score / 100</div>
-        </div>
-        <div class="seo-breakdown">${items}</div>
-      </div>
-    `;
-  } catch {
-    resultsEl.innerHTML = '<p style="color:var(--red);padding:12px">Error checking SEO.</p>';
-  } finally {
-    btn.disabled = false; btn.textContent = 'Check SEO Score';
-  }
 });
 
-// ── AI Chat ──────────────────────────────────────────────────
-const chatPanel   = document.getElementById('chatPanel');
-const chatOverlay = document.getElementById('chatOverlay');
-const chatMessages= document.getElementById('chatMessages');
-const chatInput   = document.getElementById('chatInput');
+// ── Workspace selector (decorative dropdown feel) ───────────
+document.getElementById('workspaceSelector').addEventListener('click', () => {
+  // could open a workspace switcher — wired as no-op for now
+});
 
-function openChat()  { chatPanel.classList.add('open'); chatOverlay.classList.add('visible'); }
-function closeChat() { chatPanel.classList.remove('open'); chatOverlay.classList.remove('visible'); }
-
-document.getElementById('chatToggle').addEventListener('click', openChat);
-document.getElementById('chatClose').addEventListener('click', closeChat);
-chatOverlay.addEventListener('click', closeChat);
-
-function appendMsg(text, role) {
-  const div = document.createElement('div');
-  div.className = `chat-msg ${role}`;
-  div.innerHTML = `<div class="msg-bubble">${text}</div>`;
-  chatMessages.appendChild(div);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-async function sendChat() {
-  const msg = chatInput.value.trim();
-  if (!msg) return;
-  chatInput.value = '';
-  appendMsg(msg, 'user');
-
-  const thinking = document.createElement('div');
-  thinking.className = 'chat-msg bot';
-  thinking.innerHTML = '<div class="msg-bubble" style="color:var(--text-muted)">Thinking…</div>';
-  chatMessages.appendChild(thinking);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-
-  try {
-    const res  = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: msg }),
-    });
-    const data = await res.json();
-    thinking.querySelector('.msg-bubble').style.color = '';
-    thinking.querySelector('.msg-bubble').textContent = data.reply;
-  } catch {
-    thinking.querySelector('.msg-bubble').textContent = 'Sorry, something went wrong. Try again.';
-  }
-}
-
-document.getElementById('chatSendBtn').addEventListener('click', sendChat);
-chatInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendChat(); });
+// ── Auto-resize textarea ────────────────────────────────────
+const textarea = document.getElementById('promptInput');
+textarea.addEventListener('input', () => {
+  textarea.style.height = 'auto';
+  textarea.style.height = Math.min(textarea.scrollHeight, 220) + 'px';
+});

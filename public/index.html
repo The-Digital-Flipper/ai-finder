@@ -3,13 +3,376 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tube Shorts Pro — Creator Growth App</title>
+  <title>AI Finder — Build with AI</title>
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 </head>
 <body>
+
+  <!-- ═══════════════════════════════
+       LEFT SIDEBAR
+  ════════════════════════════════ -->
+  <aside class="sidebar" id="sidebar">
+
+    <!-- top bar: logo + search -->
+    <div class="sidebar-topbar">
+      <div class="sidebar-logo">
+        <svg class="logo-icon" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="3" width="8" height="8" rx="1.5" fill="currentColor"/>
+          <rect x="13" y="3" width="8" height="8" rx="1.5" fill="currentColor" opacity=".7"/>
+          <rect x="3" y="13" width="8" height="8" rx="1.5" fill="currentColor" opacity=".7"/>
+          <rect x="13" y="13" width="8" height="8" rx="1.5" fill="currentColor" opacity=".4"/>
+        </svg>
+      </div>
+      <button class="sidebar-search-btn" id="searchBtn" title="Search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- workspace selector -->
+    <div class="workspace-selector" id="workspaceSelector">
+      <div class="workspace-avatar">J</div>
+      <span class="workspace-name">Joshua's Workspace</span>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </div>
+
+    <!-- create button -->
+    <button class="btn-create" id="sidebarCreateBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Create something new
+    </button>
+
+    <!-- nav -->
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" data-section="home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        Home
+      </a>
+      <a href="#" class="nav-item" data-section="learn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        Learn
+      </a>
+      <a href="#" class="nav-item" data-section="docs">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+        </svg>
+        Documentation
+      </a>
+      <a href="#" class="nav-item" data-section="templates">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+        </svg>
+        Templates
+      </a>
+    </nav>
+
+    <!-- plan section -->
+    <div class="plan-section">
+      <div class="plan-title">Your Starter Plan</div>
+      <div class="plan-limit-banner">You've reached your usage limit</div>
+
+      <div class="usage-item">
+        <div class="usage-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="usage-icon">
+            <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+          </svg>
+          <span class="usage-label">Free Apps</span>
+          <span class="usage-count">6/10 created</span>
+        </div>
+        <div class="usage-bar-track">
+          <div class="usage-bar-fill" style="width:60%;background:#3b82f6"></div>
+        </div>
+      </div>
+
+      <div class="usage-item">
+        <div class="usage-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="usage-icon">
+            <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
+          </svg>
+          <span class="usage-label">Agent credits</span>
+          <span class="usage-count">100% used</span>
+        </div>
+        <div class="usage-bar-track">
+          <div class="usage-bar-fill" style="width:100%;background:#3b82f6"></div>
+        </div>
+      </div>
+
+      <div class="usage-item">
+        <div class="usage-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="usage-icon">
+            <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>
+          </svg>
+          <span class="usage-label">Cloud credits</span>
+          <span class="usage-count">0% used</span>
+        </div>
+        <div class="usage-bar-track">
+          <div class="usage-bar-fill" style="width:2%;background:#3b82f6"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- sidebar footer -->
+    <div class="sidebar-footer">
+      <button class="btn-upgrade">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+        Upgrade to Replit Core
+      </button>
+      <div class="sidebar-footer-links">
+        <a href="#">Install Replit on <kbd>⊞</kbd></a>
+        <span>·</span>
+        <a href="#">Changelog</a>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ═══════════════════════════════
+       MAIN CONTENT
+  ════════════════════════════════ -->
+  <main class="main" id="main">
+
+    <!-- HOME SECTION -->
+    <section class="section active" id="section-home">
+
+      <!-- center prompt area -->
+      <div class="prompt-area">
+        <div class="prompt-workspace-row">
+          <div class="workspace-avatar sm">J</div>
+          <span>Joshua's Workspace</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px;color:var(--text-muted)">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </div>
+
+        <h1 class="prompt-heading">Hi Joshua, what do you want to make?</h1>
+
+        <!-- AI prompt box -->
+        <div class="prompt-box" id="promptBox">
+          <textarea
+            class="prompt-textarea"
+            id="promptInput"
+            placeholder="Describe your idea, Replit will bring it to life..."
+            rows="3"
+          ></textarea>
+          <div class="prompt-actions">
+            <div class="prompt-actions-left">
+              <button class="prompt-btn-icon" title="Attach file">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+              </button>
+            </div>
+            <div class="prompt-actions-right">
+              <button class="btn-plan" id="btnPlan">Plan</button>
+              <button class="btn-submit" id="btnSubmit" title="Build">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- usage limit notice -->
+        <div class="limit-banner" id="limitBanner">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="limit-icon">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+          <div class="limit-text">
+            <strong>You've reached your monthly Starter limit</strong>
+            <span>Upgrade to Core for unlimited access to Agent</span>
+          </div>
+          <button class="btn-upgrade-inline">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+            Upgrade
+          </button>
+          <button class="limit-close" id="limitClose">✕</button>
+        </div>
+
+        <!-- quick template chips -->
+        <div class="template-chips">
+          <span class="chips-label">Start with a template:</span>
+          <button class="chip" data-tpl="Build a full-stack web app with React and Node.js">🌐 Web App</button>
+          <button class="chip" data-tpl="Create a REST API with Express and a database">🔌 REST API</button>
+          <button class="chip" data-tpl="Build a Discord bot with slash commands">🤖 Discord Bot</button>
+          <button class="chip" data-tpl="Create a Python data analysis dashboard">📊 Dashboard</button>
+          <button class="chip" data-tpl="Build a CLI tool in Python">⚡ CLI Tool</button>
+        </div>
+      </div>
+
+      <!-- recent projects -->
+      <div class="projects-section">
+        <div class="projects-header">
+          <h2 class="projects-title">Recent</h2>
+          <div class="projects-tabs">
+            <button class="tab active" data-tab="all">All</button>
+            <button class="tab" data-tab="apps">Apps</button>
+            <button class="tab" data-tab="bots">Bots</button>
+            <button class="tab" data-tab="apis">APIs</button>
+          </div>
+          <button class="btn-new-project" id="newProjectBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            New
+          </button>
+        </div>
+
+        <div class="projects-grid" id="projectsGrid">
+          <!-- populated by JS -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- LEARN SECTION -->
+    <section class="section" id="section-learn">
+      <div class="inner-page">
+        <h2>Learn to Build</h2>
+        <p class="inner-sub">Interactive tutorials and guides to get you coding faster.</p>
+        <div class="learn-grid">
+          <div class="learn-card"><div class="learn-icon">🚀</div><h4>Getting Started</h4><p>Set up your first project in under 5 minutes.</p></div>
+          <div class="learn-card"><div class="learn-icon">🌐</div><h4>Web Development</h4><p>HTML, CSS, JavaScript, React, Node.js — all in one place.</p></div>
+          <div class="learn-card"><div class="learn-icon">🐍</div><h4>Python Basics</h4><p>Variables, functions, loops, and real projects.</p></div>
+          <div class="learn-card"><div class="learn-icon">🤖</div><h4>AI & Machine Learning</h4><p>Build with OpenAI, HuggingFace, and LangChain.</p></div>
+          <div class="learn-card"><div class="learn-icon">🔌</div><h4>APIs & Databases</h4><p>Connect your app to the world with REST and SQL.</p></div>
+          <div class="learn-card"><div class="learn-icon">📦</div><h4>Deployment</h4><p>Ship your project to a live URL in one click.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DOCS SECTION -->
+    <section class="section" id="section-docs">
+      <div class="inner-page">
+        <h2>Documentation</h2>
+        <p class="inner-sub">Everything you need to know about the platform.</p>
+        <div class="doc-list">
+          <a href="#" class="doc-item"><span>📖</span> Quick Start Guide</a>
+          <a href="#" class="doc-item"><span>⚙️</span> Environment Variables</a>
+          <a href="#" class="doc-item"><span>🔗</span> Custom Domains</a>
+          <a href="#" class="doc-item"><span>🗄️</span> Database & Storage</a>
+          <a href="#" class="doc-item"><span>🔑</span> Authentication</a>
+          <a href="#" class="doc-item"><span>🤖</span> AI Agent Reference</a>
+          <a href="#" class="doc-item"><span>📡</span> Webhooks & Events</a>
+          <a href="#" class="doc-item"><span>💳</span> Billing & Plans</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- TEMPLATES SECTION -->
+    <section class="section" id="section-templates">
+      <div class="inner-page">
+        <h2>Templates</h2>
+        <p class="inner-sub">Start from a working foundation instead of blank.</p>
+        <div class="projects-grid">
+          <div class="project-card template-card" data-tpl="Build a full-stack web app with React and Node.js">
+            <div class="project-card-icon" style="background:#1e3a5f">🌐</div>
+            <div class="project-card-info"><div class="project-name">Full-Stack Web App</div><div class="project-meta">React + Node.js + Express</div></div>
+          </div>
+          <div class="project-card template-card" data-tpl="Create a Python Flask REST API with SQLite">
+            <div class="project-card-icon" style="background:#1a3326">🔌</div>
+            <div class="project-card-info"><div class="project-name">REST API</div><div class="project-meta">Python + Flask + SQLite</div></div>
+          </div>
+          <div class="project-card template-card" data-tpl="Build a Discord bot with slash commands and moderation">
+            <div class="project-card-icon" style="background:#1e2151">🤖</div>
+            <div class="project-card-info"><div class="project-name">Discord Bot</div><div class="project-meta">discord.js + Node.js</div></div>
+          </div>
+          <div class="project-card template-card" data-tpl="Create an AI chatbot with streaming responses">
+            <div class="project-card-icon" style="background:#2d1b4e">✨</div>
+            <div class="project-card-info"><div class="project-name">AI Chatbot</div><div class="project-meta">OpenAI + Streaming</div></div>
+          </div>
+          <div class="project-card template-card" data-tpl="Build a Telegram bot with inline keyboards">
+            <div class="project-card-icon" style="background:#0a2d42">📱</div>
+            <div class="project-card-info"><div class="project-name">Telegram Bot</div><div class="project-meta">telegraf + Node.js</div></div>
+          </div>
+          <div class="project-card template-card" data-tpl="Create a data dashboard with charts and real-time updates">
+            <div class="project-card-icon" style="background:#2d1a00">📊</div>
+            <div class="project-card-info"><div class="project-name">Analytics Dashboard</div><div class="project-meta">Chart.js + Express</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═══════════════════════════════
+       CREATE PROJECT MODAL
+  ════════════════════════════════ -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" id="createModal">
+      <div class="modal-header">
+        <h3>Create new project</h3>
+        <button class="modal-close" id="modalClose">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Project name</label>
+          <input type="text" id="newProjectName" placeholder="my-awesome-app" />
+        </div>
+        <div class="form-group">
+          <label>Language / Stack</label>
+          <div class="stack-picker" id="stackPicker">
+            <button class="stack-btn active" data-stack="Node.js">Node.js</button>
+            <button class="stack-btn" data-stack="Python">Python</button>
+            <button class="stack-btn" data-stack="React">React</button>
+            <button class="stack-btn" data-stack="HTML/CSS/JS">HTML/CSS/JS</button>
+            <button class="stack-btn" data-stack="Go">Go</button>
+            <button class="stack-btn" data-stack="Rust">Rust</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Description <span style="color:var(--text-muted)">(optional)</span></label>
+          <input type="text" id="newProjectDesc" placeholder="What does this project do?" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" id="modalCancelBtn">Cancel</button>
+        <button class="btn-primary" id="modalCreateBtn">Create project</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════
+       BUILD OUTPUT MODAL
+  ════════════════════════════════ -->
+  <div class="modal-overlay" id="buildOverlay">
+    <div class="modal build-modal" id="buildModal">
+      <div class="modal-header">
+        <h3 id="buildModalTitle">Building your app…</h3>
+        <button class="modal-close" id="buildModalClose">✕</button>
+      </div>
+      <div class="build-terminal" id="buildTerminal">
+        <div class="terminal-line"><span class="t-prompt">$</span> Initializing project…</div>
+      </div>
+      <div class="build-actions" id="buildActions" style="display:none">
+        <button class="btn-primary" id="openProjectBtn">Open Project →</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
+
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
