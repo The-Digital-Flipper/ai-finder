@@ -193,6 +193,12 @@
       <div class="projects-section">
         <div class="projects-header">
           <h2 class="projects-title">Recent</h2>
+          <div class="projects-search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="proj-search-icon">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input type="text" id="projectsSearch" class="projects-search-input" placeholder="Filter…" />
+          </div>
           <div class="projects-tabs">
             <button class="tab active" data-tab="all">All</button>
             <button class="tab" data-tab="apps">Apps</button>
@@ -326,6 +332,9 @@
         <h3 id="buildModalTitle">Building your app…</h3>
         <button class="modal-close" id="buildModalClose">✕</button>
       </div>
+      <div class="build-progress-wrap" id="buildProgressWrap">
+        <div class="build-progress-fill" id="buildProgressFill"></div>
+      </div>
       <div class="build-terminal" id="buildTerminal">
         <div class="terminal-line"><span class="t-prompt">$</span> Initializing project…</div>
       </div>
@@ -344,10 +353,23 @@
     <div class="ws-topbar">
       <div class="ws-tabs" id="wsTabs"></div>
       <div class="ws-topbar-actions">
+        <button class="ws-action-btn ws-run-btn" id="wsRunBtn" title="Run server">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px">
+            <polygon points="5 3 19 12 5 21 5 3" fill="currentColor" stroke="none"/>
+          </svg>
+          <span id="wsRunLabel">Run</span>
+        </button>
         <button class="ws-action-btn" id="wsSearchBtn" title="Search for tools &amp; files (Ctrl+K)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
+        </button>
+        <button class="ws-action-btn ws-ai-toggle-btn" id="wsAiBtn" title="AI Assistant">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px">
+            <path d="M12 2a7 7 0 0 1 7 7c0 4-3 6-3 9H8c0-3-3-5-3-9a7 7 0 0 1 7-7z"/>
+            <line x1="8" y1="22" x2="16" y2="22"/><line x1="10" y1="18" x2="14" y2="18"/>
+          </svg>
+          AI
         </button>
         <button class="ws-action-btn ws-outline" id="wsInviteBtn">Invite</button>
         <button class="ws-action-btn ws-primary" id="wsRepublishBtn">
@@ -563,6 +585,30 @@
         </div>
 
       </div><!-- /ws-editor -->
+
+      <!-- ── AI Chat Panel ──────────────────────────────── -->
+      <div class="ws-ai-panel" id="wsAiPanel">
+        <div class="ws-ai-header">
+          <div class="ws-ai-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;color:#a78bfa">
+              <path d="M12 2a7 7 0 0 1 7 7c0 4-3 6-3 9H8c0-3-3-5-3-9a7 7 0 0 1 7-7z"/>
+              <line x1="8" y1="22" x2="16" y2="22"/><line x1="10" y1="18" x2="14" y2="18"/>
+            </svg>
+            AI Assistant
+          </div>
+          <button class="ws-ai-close" id="wsAiClose">✕</button>
+        </div>
+        <div class="ws-ai-messages" id="wsAiMessages"></div>
+        <div class="ws-ai-input-row">
+          <input type="text" class="ws-ai-input" id="wsAiInput" placeholder="Ask AI about your code…" autocomplete="off" />
+          <button class="ws-ai-send" id="wsAiSend">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px">
+              <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
     </div><!-- /ws-body -->
 
     <!-- ── Status Bar ──────────────────────────────────── -->
@@ -694,6 +740,54 @@
     </div>
   </div>
   <div class="tools-panel-overlay" id="toolsPanelOverlay"></div>
+
+  <!-- Context Menu -->
+  <div class="ctx-menu" id="ctxMenu">
+    <button class="ctx-item" id="ctxOpen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      Open
+    </button>
+    <button class="ctx-item" id="ctxDuplicate">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      Duplicate
+    </button>
+    <div class="ctx-sep"></div>
+    <button class="ctx-item ctx-danger" id="ctxDelete">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+      Delete
+    </button>
+  </div>
+
+  <!-- Keyboard Shortcuts Overlay -->
+  <div class="shortcuts-overlay" id="shortcutsOverlay">
+    <div class="shortcuts-modal">
+      <div class="shortcuts-header">
+        Keyboard Shortcuts
+        <button class="shortcuts-close" id="shortcutsClose">✕</button>
+      </div>
+      <div class="shortcuts-body">
+        <div class="shortcuts-group">
+          <div class="shortcuts-group-title">General</div>
+          <div class="shortcut-row"><kbd>Ctrl</kbd><kbd>K</kbd><span>Search &amp; tools palette</span></div>
+          <div class="shortcut-row"><kbd>Ctrl</kbd><kbd>Enter</kbd><span>Submit prompt / build</span></div>
+          <div class="shortcut-row"><kbd>?</kbd><span>Toggle this overlay</span></div>
+          <div class="shortcut-row"><kbd>Esc</kbd><span>Close panel / dialog</span></div>
+        </div>
+        <div class="shortcuts-group">
+          <div class="shortcuts-group-title">Workspace</div>
+          <div class="shortcut-row"><kbd>Ctrl</kbd><kbd>`</kbd><span>Toggle terminal</span></div>
+          <div class="shortcut-row"><kbd>Ctrl</kbd><kbd>B</kbd><span>Toggle file panel</span></div>
+          <div class="shortcut-row"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>P</kbd><span>Open AI assistant</span></div>
+          <div class="shortcut-row"><kbd>Ctrl</kbd><kbd>S</kbd><span>Save file</span></div>
+        </div>
+        <div class="shortcuts-group">
+          <div class="shortcuts-group-title">Navigation</div>
+          <div class="shortcut-row"><kbd>Alt</kbd><kbd>←</kbd><span>Back to dashboard</span></div>
+          <div class="shortcut-row"><kbd>Ctrl</kbd><kbd>Tab</kbd><span>Switch tab</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div id="toastContainer" class="toast-container"></div>
 

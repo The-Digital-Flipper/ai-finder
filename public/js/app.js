@@ -749,3 +749,320 @@ function showToast(msg, type = 'info') {
   container.appendChild(toast);
   setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 320); }, 2800);
 }
+
+// ════════════════════════════════════════════════════════════
+// BUILD PROGRESS BAR
+// ════════════════════════════════════════════════════════════
+const buildProgressFill = document.getElementById('buildProgressFill');
+
+function startBuildProgress() {
+  if (!buildProgressFill) return;
+  buildProgressFill.style.width = '0%';
+  const steps = [
+    { w: '15%', delay: 100 }, { w: '35%', delay: 450 },
+    { w: '55%', delay: 900 }, { w: '75%', delay: 1600 },
+    { w: '90%', delay: 2100 }, { w: '100%', delay: 3200 },
+  ];
+  steps.forEach(({ w, delay }) => setTimeout(() => { buildProgressFill.style.width = w; }, delay));
+}
+
+// patch openBuildModal to kick off progress
+const _origOpenBuildModal = openBuildModal;
+function openBuildModal(title, project) {
+  _origOpenBuildModal(title, project);
+  startBuildProgress();
+}
+
+// ════════════════════════════════════════════════════════════
+// PROJECT SEARCH FILTER
+// ════════════════════════════════════════════════════════════
+document.getElementById('projectsSearch').addEventListener('input', function () {
+  const q = this.value.toLowerCase().trim();
+  if (!q) { renderProjects(currentTab); return; }
+
+  const grid = document.getElementById('projectsGrid');
+  const projects = getProjects().filter(p =>
+    p.name.toLowerCase().includes(q) ||
+    p.stack.toLowerCase().includes(q) ||
+    (p.desc || '').toLowerCase().includes(q)
+  );
+
+  grid.innerHTML = '';
+  if (projects.length === 0) {
+    grid.innerHTML = `
+      <div class="projects-empty">
+        <div class="projects-empty-icon">🔍</div>
+        <p>No projects found</p>
+        <span>No results for "<strong>${q}</strong>" — <button onclick="document.getElementById('projectsSearch').value='';renderProjects('all')">clear filter</button></span>
+      </div>`;
+    return;
+  }
+  projects.forEach((p, i) => {
+    const card = document.createElement('div');
+    card.className = 'project-card';
+    card.style.animationDelay = `${i * 0.04}s`;
+    card.innerHTML = `
+      <div class="project-card-icon" style="background:${p.bg}">${p.icon}</div>
+      <div class="project-card-info">
+        <div class="project-name">${p.name}</div>
+        <div class="project-meta">${stackIcons[p.stack] || ''} ${p.stack} · ${p.updatedAt}</div>
+      </div>`;
+    card.addEventListener('click', () => openBuildModal(`Opening ${p.name}…`, p));
+    grid.appendChild(card);
+  });
+});
+
+// also show empty state when tab returns 0 projects
+const _origRenderProjects = renderProjects;
+function renderProjects(filter) {
+  _origRenderProjects(filter);
+  const grid = document.getElementById('projectsGrid');
+  if (grid && grid.children.length === 0) {
+    grid.innerHTML = `
+      <div class="projects-empty">
+        <div class="projects-empty-icon">📭</div>
+        <p>No projects here yet</p>
+        <span><button onclick="openCreateModal()">Create your first project</button></span>
+      </div>`;
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// CONTEXT MENU
+// ════════════════════════════════════════════════════════════
+const ctxMenu = document.getElementById('ctxMenu');
+let ctxProject = null;
+
+function openCtxMenu(e, project) {
+  e.preventDefault();
+  ctxProject = project;
+  ctxMenu.classList.add('open');
+  const x = Math.min(e.clientX, window.innerWidth  - 180);
+  const y = Math.min(e.clientY, window.innerHeight - 120);
+  ctxMenu.style.left = `${x}px`;
+  ctxMenu.style.top  = `${y}px`;
+}
+
+function closeCtxMenu() { ctxMenu.classList.remove('open'); ctxProject = null; }
+
+document.addEventListener('click',       closeCtxMenu);
+document.addEventListener('contextmenu', e => {
+  const card = e.target.closest('.project-card');
+  if (!card) { closeCtxMenu(); return; }
+  const name = card.querySelector('.project-name')?.textContent;
+  const proj = getProjects().find(p => p.name === name);
+  if (proj) openCtxMenu(e, proj);
+});
+
+document.getElementById('ctxOpen').addEventListener('click', () => {
+  if (ctxProject) openBuildModal(`Opening ${ctxProject.name}…`, ctxProject);
+});
+document.getElementById('ctxDuplicate').addEventListener('click', () => {
+  if (!ctxProject) return;
+  const copy = { ...ctxProject, id: Date.now(), name: ctxProject.name + '-copy', updatedAt: 'just now' };
+  const projects = getProjects();
+  projects.unshift(copy);
+  saveProjects(projects);
+  renderProjects(currentTab);
+  showToast(`Duplicated "${ctxProject.name}"`, 'info');
+});
+document.getElementById('ctxDelete').addEventListener('click', () => {
+  if (!ctxProject) return;
+  saveProjects(getProjects().filter(p => p.id !== ctxProject.id));
+  renderProjects(currentTab);
+  showToast(`Deleted "${ctxProject.name}"`, 'info');
+});
+
+// ════════════════════════════════════════════════════════════
+// KEYBOARD SHORTCUTS OVERLAY
+// ════════════════════════════════════════════════════════════
+const shortcutsOverlay = document.getElementById('shortcutsOverlay');
+
+function openShortcuts()  { shortcutsOverlay.classList.add('open'); }
+function closeShortcuts() { shortcutsOverlay.classList.remove('open'); }
+
+document.getElementById('shortcutsClose').addEventListener('click', closeShortcuts);
+shortcutsOverlay.addEventListener('click', e => { if (e.target === shortcutsOverlay) closeShortcuts(); });
+
+document.addEventListener('keydown', e => {
+  if (e.key === '?' && !e.ctrlKey && !e.metaKey && !['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) {
+    openShortcuts();
+  }
+  if (e.key === 'Escape') closeShortcuts();
+  // Ctrl+` → toggle terminal in workspace
+  if ((e.ctrlKey || e.metaKey) && e.key === '`') {
+    e.preventDefault();
+    if (workspace.classList.contains('open')) {
+      activeWsPane === 'terminal' ? openWsPane('editor') : openWsPane('terminal');
+    }
+  }
+  // Ctrl+Shift+P → open AI assistant
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'P') {
+    e.preventDefault();
+    if (workspace.classList.contains('open')) toggleAiPanel();
+  }
+  // Ctrl+B → toggle file panel
+  if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+    e.preventDefault();
+    const panel = document.getElementById('wsPanel');
+    if (panel) panel.style.display = panel.style.display === 'none' ? '' : 'none';
+  }
+  // Alt+← → back to dashboard
+  if (e.altKey && e.key === 'ArrowLeft' && workspace.classList.contains('open')) {
+    closeWorkspace();
+  }
+});
+
+// ════════════════════════════════════════════════════════════
+// RUN / STOP TOGGLE
+// ════════════════════════════════════════════════════════════
+let isRunning = false;
+const wsRunBtn   = document.getElementById('wsRunBtn');
+const wsRunLabel = document.getElementById('wsRunLabel');
+
+wsRunBtn.addEventListener('click', () => {
+  isRunning = !isRunning;
+  wsRunBtn.classList.toggle('running', isRunning);
+  wsRunLabel.textContent = isRunning ? 'Stop' : 'Run';
+  wsRunBtn.querySelector('svg').innerHTML = isRunning
+    ? '<rect x="6" y="6" width="12" height="12" rx="1" fill="currentColor" stroke="none"/>'
+    : '<polygon points="5 3 19 12 5 21 5 3" fill="currentColor" stroke="none"/>';
+  if (isRunning) {
+    showToast(`${activeProject?.name || 'App'} is running on port 3000`, 'success');
+    document.getElementById('wsStatusFile') && (document.querySelector('.ws-status-dot').style.background = '#4ade80');
+  } else {
+    showToast('Server stopped', 'info');
+    document.querySelector('.ws-status-dot') && (document.querySelector('.ws-status-dot').style.background = '#6b7280');
+  }
+});
+
+// ════════════════════════════════════════════════════════════
+// AI ASSISTANT PANEL
+// ════════════════════════════════════════════════════════════
+const wsAiPanel = document.getElementById('wsAiPanel');
+const wsAiMessages = document.getElementById('wsAiMessages');
+const wsAiInput    = document.getElementById('wsAiInput');
+const wsAiBtn      = document.getElementById('wsAiBtn');
+
+const AI_KNOWLEDGE = {
+  database:    'To add a **Database**, open the Database tab from the Tools panel (Ctrl+K). AI Finder supports PostgreSQL — your connection string will be auto-injected as `DATABASE_URL` in your environment variables.',
+  deploy:      'To **deploy your app**, click "Republish" in the top bar, or open the Publishing pane. Your app gets a live public URL instantly — zero config needed.',
+  auth:        'To add **user authentication**, open the Auth tool (Tools panel → Auth). It supports email/password, Google, and GitHub OAuth out of the box — no extra packages required.',
+  storage:     'To store **files and uploads**, open the App Storage tool. It provides S3-compatible object storage. Access it with the `@replit/object-storage` package.',
+  integrations:'Popular **integrations** available: Stripe (payments), Discord (bots), SendGrid (email), Supabase (database), Twilio (SMS), GitHub (CI/CD). Open each from the Integrations pane.',
+  error:       'For **debugging errors**: check the Terminal output, review your `package.json` start script, verify `.env` variables are set, and run `npm install` to refresh dependencies. The AI can also scan your code automatically.',
+  test:        'To **run tests**, open the Terminal tab and run `npm test` (Node.js) or `pytest` (Python). You can also set up a `test` script in your `package.json` and it will appear in the Run menu.',
+  git:         'Your project is **version controlled** with Git. The Source Control panel (left sidebar) shows your working tree. Commits are automatic on every deploy.',
+  env:         '**Environment variables** are stored in your `.env` file. Access them in Node.js with `process.env.VARIABLE_NAME` or in Python with `os.environ["VARIABLE_NAME"]`. They are never exposed to the client.',
+};
+
+function getAiResponse(input) {
+  const q = input.toLowerCase();
+  if (/database|postgresql|sql|postgres/.test(q))      return AI_KNOWLEDGE.database;
+  if (/deploy|publish|live|url|hosting/.test(q))       return AI_KNOWLEDGE.deploy;
+  if (/auth|login|sign.?in|password|oauth/.test(q))    return AI_KNOWLEDGE.auth;
+  if (/storage|upload|file|image|s3/.test(q))          return AI_KNOWLEDGE.storage;
+  if (/integrat|stripe|discord|sendgrid|twilio/.test(q)) return AI_KNOWLEDGE.integrations;
+  if (/error|bug|fix|crash|fail|broken/.test(q))       return AI_KNOWLEDGE.error;
+  if (/test|spec|jest|pytest/.test(q))                 return AI_KNOWLEDGE.test;
+  if (/git|commit|branch|version/.test(q))             return AI_KNOWLEDGE.git;
+  if (/env|environment|secret|\.env/.test(q))          return AI_KNOWLEDGE.env;
+  if (/hello|hi|hey/.test(q)) return `Hey! 👋 I'm your AI coding assistant. I can help with **databases**, **deployment**, **auth**, **integrations**, debugging, and more. What do you need?`;
+  return `Great question! For *${input}*, I'd suggest starting by searching the docs (Ctrl+K → "Documentation"), or I can walk you through it step by step. What specifically are you trying to build?`;
+}
+
+async function typeIntoElement(el, text, speed = 14) {
+  el.textContent = '';
+  for (let i = 0; i < text.length; i++) {
+    // parse simple **bold** markers
+    const char = text[i];
+    el.textContent += char;
+    el.closest('.ws-ai-messages').scrollTop = el.closest('.ws-ai-messages').scrollHeight;
+    await new Promise(r => setTimeout(r, speed));
+  }
+}
+
+function addAiMessage(role, text) {
+  const msg = document.createElement('div');
+  msg.className = `ws-ai-msg ${role}`;
+  msg.innerHTML = `
+    <div class="ws-ai-msg-label">${role === 'ai' ? '✦ AI' : 'You'}</div>
+    <div class="ws-ai-msg-bubble"></div>`;
+  wsAiMessages.appendChild(msg);
+  wsAiMessages.scrollTop = wsAiMessages.scrollHeight;
+  return msg.querySelector('.ws-ai-msg-bubble');
+}
+
+async function sendAiMessage(text) {
+  if (!text.trim()) return;
+  wsAiInput.value = '';
+  wsAiInput.disabled = true;
+
+  addAiMessage('user', text).textContent = text;
+
+  // typing indicator
+  const typingEl = document.createElement('div');
+  typingEl.className = 'ws-ai-msg ai';
+  typingEl.innerHTML = '<div class="ws-ai-msg-label">✦ AI</div><div class="ws-ai-typing"><span></span><span></span><span></span></div>';
+  wsAiMessages.appendChild(typingEl);
+  wsAiMessages.scrollTop = wsAiMessages.scrollHeight;
+
+  await new Promise(r => setTimeout(r, 900 + Math.random() * 600));
+
+  typingEl.remove();
+  const responseBubble = addAiMessage('ai', '');
+
+  // strip markdown bold for plain text display
+  const response = getAiResponse(text);
+  const clean = response.replace(/\*\*(.*?)\*\*/g, '$1');
+  await typeIntoElement(responseBubble, clean, 12);
+
+  wsAiInput.disabled = false;
+  wsAiInput.focus();
+}
+
+function openAiPanel() {
+  wsAiPanel.classList.add('open');
+  wsAiBtn.classList.add('active');
+  wsAiInput.focus();
+
+  if (wsAiMessages.children.length === 0 && activeProject) {
+    setTimeout(async () => {
+      const bubble = addAiMessage('ai', '');
+      const greeting = `Hi! I'm watching **${activeProject.name}** (${activeProject.stack}). Ask me anything — debugging, adding features, deployment, or integrations.`;
+      const clean = greeting.replace(/\*\*(.*?)\*\*/g, '$1');
+      await typeIntoElement(bubble, clean, 13);
+    }, 180);
+  }
+}
+
+function closeAiPanel() {
+  wsAiPanel.classList.remove('open');
+  wsAiBtn.classList.remove('active');
+}
+
+function toggleAiPanel() {
+  wsAiPanel.classList.contains('open') ? closeAiPanel() : openAiPanel();
+}
+
+wsAiBtn.addEventListener('click', toggleAiPanel);
+document.getElementById('wsAiClose').addEventListener('click', closeAiPanel);
+
+wsAiInput.addEventListener('keypress', e => {
+  if (e.key === 'Enter' && wsAiInput.value.trim()) sendAiMessage(wsAiInput.value.trim());
+});
+document.getElementById('wsAiSend').addEventListener('click', () => {
+  if (wsAiInput.value.trim()) sendAiMessage(wsAiInput.value.trim());
+});
+
+// open AI panel and clear chat when a new workspace opens
+const _origCloseWorkspace = closeWorkspace;
+function closeWorkspace() {
+  _origCloseWorkspace();
+  closeAiPanel();
+  wsAiMessages.innerHTML = '';
+  isRunning = false;
+  wsRunBtn.classList.remove('running');
+  wsRunLabel.textContent = 'Run';
+}
+
