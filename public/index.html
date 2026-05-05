@@ -564,6 +564,31 @@
 
       </div><!-- /ws-editor -->
     </div><!-- /ws-body -->
+
+    <!-- ── Status Bar ──────────────────────────────────── -->
+    <div class="ws-statusbar" id="wsStatusbar">
+      <div class="ws-status-left">
+        <span class="ws-status-item">
+          <span class="ws-status-dot"></span>
+          <span id="wsStatusProject">project</span>
+        </span>
+        <span class="ws-status-item" id="wsStatusBranch">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:10px;height:10px;flex-shrink:0">
+            <line x1="6" y1="3" x2="6" y2="15"/>
+            <circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/>
+            <path d="M18 9a9 9 0 0 1-9 9"/>
+          </svg>
+          main
+        </span>
+      </div>
+      <div class="ws-status-right">
+        <span class="ws-status-item" id="wsStatusStack">Node.js</span>
+        <span class="ws-status-item" id="wsStatusFile">index.js</span>
+        <span class="ws-status-item">UTF-8</span>
+        <span class="ws-status-item">LF</span>
+      </div>
+    </div>
+
   </div><!-- /workspace -->
 
   <!-- ═══════════════════════════════
@@ -669,6 +694,8 @@
     </div>
   </div>
   <div class="tools-panel-overlay" id="toolsPanelOverlay"></div>
+
+  <div id="toastContainer" class="toast-container"></div>
 
   <script src="/js/app.js"></script>
 </body>

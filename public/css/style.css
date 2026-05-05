@@ -307,7 +307,17 @@ html, body {
   text-align: center;
   margin-bottom: 24px;
   line-height: 1.25;
-  color: var(--text);
+  background: linear-gradient(90deg, #e8e8e8 0%, #f5f5f5 30%, #60a5fa 48%, #a78bfa 58%, #f5f5f5 76%, #e8e8e8 100%);
+  background-size: 250% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: headingShimmer 7s ease-in-out infinite;
+}
+
+@keyframes headingShimmer {
+  0%, 100% { background-position: 100% center; }
+  50%       { background-position:   0% center; }
 }
 
 /* prompt box */
@@ -547,9 +557,18 @@ html, body {
   align-items: center;
   gap: 12px;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
   text-decoration: none;
   color: inherit;
+  animation: cardFadeIn 0.28s ease both;
+}
+.project-card:hover {
+  box-shadow: 0 0 0 1px rgba(59,130,246,0.25), 0 4px 16px rgba(0,0,0,0.3);
+}
+
+@keyframes cardFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 .project-card:hover { border-color: var(--border2); background: var(--bg3); }
 
@@ -1407,3 +1426,125 @@ html, body {
   left: 50%;
   transform: translateX(-50%);
 }
+
+/* ══════════════════════════════
+   SYNTAX HIGHLIGHT TOKENS
+══════════════════════════════ */
+.hl-keyword  { color: #569cd6; }
+.hl-string   { color: #ce9178; }
+.hl-comment  { color: #6a9955; font-style: italic; }
+.hl-number   { color: #b5cea8; }
+.hl-function { color: #dcdcaa; }
+.hl-class    { color: #4ec9b0; }
+.hl-const    { color: #9cdcfe; }
+
+/* ══════════════════════════════
+   WORKSPACE STATUS BAR
+══════════════════════════════ */
+.ws-statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 22px;
+  padding: 0 10px;
+  background: #0d47a1;
+  font-size: 11px;
+  color: rgba(255,255,255,0.88);
+  flex-shrink: 0;
+  overflow: hidden;
+  user-select: none;
+}
+.ws-status-left,
+.ws-status-right { display: flex; align-items: center; gap: 2px; }
+.ws-status-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 6px;
+  height: 22px;
+  cursor: default;
+  white-space: nowrap;
+  transition: background 0.12s;
+}
+.ws-status-item:hover { background: rgba(255,255,255,0.12); }
+.ws-status-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #4ade80;
+  display: inline-block;
+  flex-shrink: 0;
+  box-shadow: 0 0 5px rgba(74,222,128,0.7);
+}
+.ws-status-sep { color: rgba(255,255,255,0.3); margin: 0 2px; }
+
+/* ══════════════════════════════
+   TOAST NOTIFICATIONS
+══════════════════════════════ */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: #2a2a2a;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.45);
+  animation: toastIn 0.22s ease, toastOut 0.28s ease 2.7s forwards;
+  pointer-events: auto;
+  min-width: 180px;
+  max-width: 320px;
+}
+.toast.success { border-left: 3px solid #22c55e; }
+.toast.error   { border-left: 3px solid #ef4444; }
+.toast.info    { border-left: 3px solid #3b82f6; }
+.toast-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #3b82f6;
+}
+.toast.success .toast-dot { background: #22c55e; }
+.toast.error   .toast-dot { background: #ef4444; }
+
+@keyframes toastIn  {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes toastOut {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(20px); }
+}
+
+/* ══════════════════════════════
+   TERMINAL CURSOR BLINK
+══════════════════════════════ */
+.ws-terminal-input-row .ws-prompt::after,
+.ws-shell-input-row    .ws-prompt::after {
+  content: '▌';
+  animation: cursorBlink 1s step-end infinite;
+  margin-left: 2px;
+  color: var(--accent);
+  font-size: 11px;
+}
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* project-card hover border kept consistent */
+.project-card:hover { border-color: rgba(59,130,246,0.35); background: var(--bg3); }
+

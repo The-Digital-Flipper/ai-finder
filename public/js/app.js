@@ -47,9 +47,10 @@ function renderProjects(filter = 'all') {
   if (filter === 'apis') projects = projects.filter(p => p.name.includes('api'));
 
   grid.innerHTML = '';
-  projects.forEach(p => {
+  projects.forEach((p, i) => {
     const card = document.createElement('div');
     card.className = 'project-card';
+    card.style.animationDelay = `${i * 0.045}s`;
     card.innerHTML = `
       <div class="project-card-icon" style="background:${p.bg}">${p.icon}</div>
       <div class="project-card-info">
@@ -72,8 +73,10 @@ function renderProjects(filter = 'all') {
     btn.addEventListener('click', e => {
       e.stopPropagation();
       const id = parseInt(btn.dataset.id);
+      const deleted = getProjects().find(p => p.id === id);
       saveProjects(getProjects().filter(p => p.id !== id));
       renderProjects(currentTab);
+      if (deleted) showToast(`Deleted "${deleted.name}"`, 'info');
     });
   });
 
@@ -143,6 +146,7 @@ document.getElementById('modalCreateBtn').addEventListener('click', () => {
   saveProjects(projects);
   closeCreateModal();
   renderProjects(currentTab);
+  showToast(`✓ "${newP.name}" created`, 'success');
   openBuildModal(`Creating ${newP.name}…`, newP);
 });
 
@@ -345,6 +349,12 @@ function openWorkspace(project) {
   // panel project name
   document.getElementById('wsPanelProjectName').textContent = project.name;
 
+  // update status bar
+  const firstFile = (filesByStack[project.stack] || filesByStack['Node.js'])[0];
+  document.getElementById('wsStatusProject').textContent = project.name;
+  document.getElementById('wsStatusStack').textContent   = project.stack;
+  document.getElementById('wsStatusFile').textContent    = firstFile?.name || 'index.js';
+
   // build tab bar
   buildWsTabs(['editor', 'terminal', 'preview']);
 
@@ -444,6 +454,8 @@ function renderFileTree(stack) {
       tree.querySelectorAll('.ws-file-item').forEach(el => el.classList.remove('active'));
       item.classList.add('active');
       document.getElementById('wsCodeFilename').textContent = f.name;
+      const sbFile = document.getElementById('wsStatusFile');
+      if (sbFile) sbFile.textContent = f.name;
       document.getElementById('wsCodeLang') && (document.getElementById('wsCodeLang').textContent = f.lang);
       openWsPane('editor');
     });
@@ -452,6 +464,66 @@ function renderFileTree(stack) {
 }
 
 // ── Code editor ──────────────────────────────────────────────
+function highlightCode(raw, stack) {
+  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  const isJS   = ['Node.js','React','HTML/CSS/JS'].includes(stack);
+  const isPy   = stack === 'Python';
+  const isGo   = stack === 'Go';
+  const isRust = stack === 'Rust';
+
+  const JS_KW  = /\b(const|let|var|function|return|if|else|for|while|do|switch|case|break|continue|import|export|default|from|class|extends|new|this|typeof|instanceof|async|await|try|catch|finally|throw|in|of|null|undefined|true|false|void|delete|require|module)\b/y;
+  const PY_KW  = /\b(def|class|return|if|elif|else|for|while|import|from|as|in|not|and|or|True|False|None|with|try|except|finally|raise|pass|break|continue|lambda|yield|global|nonlocal|del|print)\b/y;
+  const GO_KW  = /\b(func|var|const|type|struct|interface|package|import|return|if|else|for|range|switch|case|default|break|continue|go|chan|select|defer|map|nil|true|false|make|new|append|len|fmt|http|json)\b/y;
+  const RS_KW  = /\b(fn|let|mut|const|use|mod|pub|struct|enum|impl|trait|return|if|else|for|while|loop|match|break|continue|self|Self|super|in|where|type|async|await|dyn|move|ref|crate|extern|unsafe|true|false|println|unwrap)\b/y;
+
+  const patterns = [
+    // single-line comments
+    ...(isJS   ? [{ re: /\/\/.*/y,              cls:'hl-comment' }] : []),
+    ...(isPy   ? [{ re: /#.*/y,                 cls:'hl-comment' }] : []),
+    ...(isGo||isRust ? [{ re: /\/\/.*/y,        cls:'hl-comment' }] : []),
+    // block comments
+    ...(isJS||isGo||isRust ? [{ re: /\/\*[\s\S]*?\*\//y, cls:'hl-comment' }] : []),
+    // triple-quoted strings (Python)
+    ...(isPy   ? [{ re: /"""[\s\S]*?"""/y,      cls:'hl-string'  }] : []),
+    // template literals
+    ...(isJS   ? [{ re: /`(?:[^`\\]|\\.)*`/y,   cls:'hl-string'  }] : []),
+    // regular strings
+    { re: /"(?:[^"\\]|\\.)*"/y,                  cls:'hl-string'  },
+    { re: /'(?:[^'\\]|\\.)*'/y,                  cls:'hl-string'  },
+    // keywords
+    ...(isJS   ? [{ re: JS_KW,                   cls:'hl-keyword' }] : []),
+    ...(isPy   ? [{ re: PY_KW,                   cls:'hl-keyword' }] : []),
+    ...(isGo   ? [{ re: GO_KW,                   cls:'hl-keyword' }] : []),
+    ...(isRust ? [{ re: RS_KW,                   cls:'hl-keyword' }] : []),
+    // class / type names (CapCase)
+    { re: /\b([A-Z][a-zA-Z0-9]*)\b/y,            cls:'hl-class'   },
+    // function calls
+    { re: /\b([a-zA-Z_$]\w*)\s*(?=\()/y,         cls:'hl-function'},
+    // numbers
+    { re: /\b(\d+\.?\d*)\b/y,                     cls:'hl-number'  },
+  ];
+
+  let out = '';
+  let pos = 0;
+
+  while (pos < raw.length) {
+    let matched = false;
+    for (const { re, cls } of patterns) {
+      re.lastIndex = pos;
+      const m = re.exec(raw);
+      if (m && m.index === pos) {
+        out += `<span class="${cls}">${esc(m[0])}</span>`;
+        pos += m[0].length;
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) { out += esc(raw[pos]); pos++; }
+  }
+  return out;
+}
+
 function loadCode(stack) {
   const code    = codeTemplates[stack] || codeTemplates['Node.js'];
   const lines   = code.split('\n');
@@ -461,7 +533,7 @@ function loadCode(stack) {
 
   document.getElementById('wsCodeFilename').textContent = file ? file.name : 'index.js';
 
-  content.textContent = code;
+  content.innerHTML = highlightCode(code, stack);
   nums.innerHTML = lines.map((_, i) => `${i + 1}`).join('\n');
 }
 
@@ -663,5 +735,17 @@ document.getElementById('publishBtn').addEventListener('click', () => {
     btn.textContent = '✓ Published! Copy URL';
     btn.disabled = false;
     btn.style.background = '#22c55e';
+    showToast('🚀 App published — live at your URL', 'success');
   }, 2200);
 });
+
+// ── Toast Notifications ──────────────────────────────────────
+function showToast(msg, type = 'info') {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<span class="toast-dot"></span><span>${msg}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 320); }, 2800);
+}
