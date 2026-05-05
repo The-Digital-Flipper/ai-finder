@@ -2341,3 +2341,277 @@ body.light-mode *::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.18); }
   border-radius: 2px;
   padding: 0 1px;
 }
+
+/* ══════════════════════════════
+   GREETING TYPING CURSOR
+══════════════════════════════ */
+.prompt-heading.typing::after {
+  content: '|';
+  animation: cursorBlink 0.7s step-end infinite;
+  margin-left: 1px;
+  -webkit-text-fill-color: var(--text);
+}
+
+/* ══════════════════════════════
+   SKELETON LOADER CARDS
+══════════════════════════════ */
+.skeleton-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  overflow: hidden;
+  position: relative;
+}
+.skeleton-card::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.05) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.4s linear infinite;
+}
+@keyframes skeletonShimmer {
+  from { background-position: 200% center; }
+  to   { background-position: -200% center; }
+}
+.sk-circle { width: 34px; height: 34px; border-radius: 8px; background: var(--bg3); flex-shrink: 0; }
+.sk-lines { flex: 1; display: flex; flex-direction: column; gap: 7px; }
+.sk-line { height: 10px; border-radius: 4px; background: var(--bg3); }
+.sk-line-short { width: 55%; }
+
+/* ══════════════════════════════
+   OPEN FILES TAB BAR
+══════════════════════════════ */
+.ws-open-files-bar {
+  display: flex;
+  align-items: stretch;
+  background: #161616;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  height: 30px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-shrink: 0;
+}
+.ws-open-files-bar::-webkit-scrollbar { display: none; }
+.ws-open-files-bar:empty { display: none; }
+
+.ws-open-file-tab {
+  display: flex; align-items: center; gap: 5px;
+  padding: 0 10px;
+  font-size: 11px; color: var(--text-muted);
+  border-right: 1px solid rgba(255,255,255,0.06);
+  cursor: pointer; white-space: nowrap;
+  transition: background 0.12s, color 0.12s;
+  flex-shrink: 0;
+}
+.ws-open-file-tab:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+.ws-open-file-tab.active { background: var(--bg); color: var(--text); border-bottom: 2px solid var(--accent); }
+.ws-open-file-tab-close {
+  width: 14px; height: 14px;
+  background: none; border: none;
+  color: var(--text-dim); cursor: pointer;
+  font-size: 11px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 2px; padding: 0;
+  transition: background 0.12s, color 0.12s;
+}
+.ws-open-file-tab-close:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+
+/* ══════════════════════════════
+   FIND BAR
+══════════════════════════════ */
+.ws-find-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  background: #1f1f1f;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  flex-shrink: 0;
+}
+.ws-find-input {
+  flex: 1;
+  max-width: 260px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  padding: 4px 9px;
+  color: var(--text);
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.ws-find-input:focus { border-color: var(--accent); }
+.ws-find-count { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+.ws-find-close {
+  background: none; border: none;
+  color: var(--text-muted); cursor: pointer;
+  font-size: 14px; padding: 0 2px;
+  transition: color 0.12s;
+}
+.ws-find-close:hover { color: var(--text); }
+
+/* ══════════════════════════════
+   GIT COMMIT UI
+══════════════════════════════ */
+.ws-git-body {
+  display: flex; flex-direction: column; gap: 0;
+  padding: 8px;
+  height: 100%; overflow-y: auto;
+}
+.ws-git-status-row {
+  display: flex; align-items: center; gap: 7px;
+  padding: 6px 8px;
+  font-size: 12px; color: var(--text-muted);
+  border-radius: var(--radius-sm);
+}
+.ws-git-changes {
+  display: flex; flex-direction: column;
+  margin-bottom: 8px;
+}
+.ws-git-change-item {
+  display: flex; align-items: center; gap: 7px;
+  padding: 5px 8px;
+  font-size: 11px; font-family: 'Courier New', monospace;
+  cursor: default; border-radius: 3px;
+  transition: background 0.1s;
+}
+.ws-git-change-item:hover { background: rgba(255,255,255,0.05); }
+.ws-git-change-letter {
+  width: 14px; height: 14px;
+  border-radius: 3px;
+  font-size: 10px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.ws-git-change-letter.M { background: rgba(251,191,36,0.15); color: #fbbf24; }
+.ws-git-change-letter.A { background: rgba(34,197,94,0.15); color: #22c55e; }
+.ws-git-change-letter.D { background: rgba(239,68,68,0.15); color: #ef4444; }
+
+.ws-git-commit-section {
+  margin-top: auto;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.ws-git-commit-input {
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: var(--radius-sm); padding: 7px 10px;
+  color: var(--text); font-size: 12px; font-family: inherit;
+  resize: none; outline: none; height: 60px;
+  transition: border-color 0.15s;
+}
+.ws-git-commit-input:focus { border-color: var(--accent); }
+.ws-git-commit-btn {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 7px 12px;
+  background: rgba(59,130,246,0.15);
+  border: 1px solid rgba(59,130,246,0.3);
+  border-radius: var(--radius-sm);
+  color: var(--accent);
+  font-size: 12px; font-weight: 600; font-family: inherit;
+  cursor: pointer; transition: background 0.15s;
+}
+.ws-git-commit-btn:hover { background: rgba(59,130,246,0.25); }
+
+/* ══════════════════════════════
+   SPLIT VIEW
+══════════════════════════════ */
+.ws-editor.split-active {
+  flex-direction: row;
+}
+.ws-editor.split-active .ws-editor-pane.active {
+  flex: 1 1 50%;
+  min-width: 0;
+  border-right: 1px solid rgba(255,255,255,0.07);
+}
+.ws-editor.split-active #pane-preview {
+  display: flex !important;
+  flex: 1 1 50%;
+  min-width: 0;
+}
+.ws-split-btn-active { background: rgba(59,130,246,0.12) !important; color: var(--accent) !important; }
+
+/* ══════════════════════════════
+   SIMULATED APP PREVIEW
+══════════════════════════════ */
+.ws-sim-app {
+  flex: 1;
+  background: #fff;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.ws-sim-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex: 1;
+  background: #1a1a1a;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.ws-sim-spinner {
+  width: 28px; height: 28px;
+  border: 2px solid rgba(59,130,246,0.2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.ws-sim-content {
+  background: #ffffff;
+  flex: 1; overflow-y: auto;
+  display: flex; flex-direction: column;
+}
+.ws-sim-navbar {
+  background: #1a1a2e;
+  color: white;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.ws-sim-nav-links { display: flex; gap: 14px; font-size: 12px; font-weight: 400; opacity: 0.8; }
+.ws-sim-hero {
+  background: linear-gradient(135deg, #1a1a2e 0%, #2d1a4a 100%);
+  color: white;
+  padding: 40px 20px;
+  text-align: center;
+}
+.ws-sim-hero h1 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+.ws-sim-hero p  { font-size: 12px; opacity: 0.7; margin-bottom: 16px; }
+.ws-sim-cta {
+  display: inline-flex; align-items: center;
+  background: var(--accent); color: white;
+  padding: 8px 18px; border-radius: 20px;
+  font-size: 12px; font-weight: 600;
+  border: none; cursor: pointer;
+}
+.ws-sim-cards {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.ws-sim-card {
+  background: #f8f8fc;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 11px;
+}
+.ws-sim-card-title { font-weight: 700; color: #1a1a2e; margin-bottom: 5px; font-size: 12px; }
+.ws-sim-card-text  { color: #666; line-height: 1.4; }
+.ws-sim-status-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: rgba(34,197,94,0.1);
+  color: #16a34a; padding: 2px 7px;
+  border-radius: 10px; font-size: 10px; font-weight: 600;
+  margin-top: 6px;
+}

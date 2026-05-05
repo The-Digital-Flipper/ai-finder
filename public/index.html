@@ -403,6 +403,12 @@
           </svg>
           <span id="wsRunLabel">Run</span>
         </button>
+        <button class="ws-action-btn" id="wsSplitBtn" title="Split editor view">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <line x1="12" y1="3" x2="12" y2="21"/>
+          </svg>
+        </button>
         <button class="ws-action-btn ws-notif-btn" id="wsNotifBtn" title="Notifications">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px">
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
@@ -494,11 +500,23 @@
 
         <div class="ws-panel-content hidden" id="wsPanelGit">
           <div class="ws-panel-header"><span>Source Control</span></div>
-          <div class="ws-git-msg">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;color:#22c55e;flex-shrink:0">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-            Working tree clean
+          <div class="ws-git-body">
+            <div class="ws-git-status-row" id="wsGitStatus">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" style="width:13px;height:13px;flex-shrink:0">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span>No changes</span>
+            </div>
+            <div class="ws-git-changes" id="wsGitChanges"></div>
+            <div class="ws-git-commit-section">
+              <textarea class="ws-git-commit-input" id="wsGitMsg" placeholder="Commit message…"></textarea>
+              <button class="ws-git-commit-btn" id="wsGitCommitBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px">
+                  <circle cx="12" cy="12" r="4"/><line x1="1.05" y1="12" x2="7" y2="12"/><line x1="17.01" y1="12" x2="22.96" y2="12"/>
+                </svg>
+                Commit
+              </button>
+            </div>
           </div>
         </div>
 
@@ -518,6 +536,15 @@
 
         <!-- CODE EDITOR pane -->
         <div class="ws-editor-pane active" id="pane-editor">
+          <!-- open-file tabs bar -->
+          <div class="ws-open-files-bar" id="wsOpenFilesBar"></div>
+          <!-- find bar (hidden until Ctrl+F) -->
+          <div class="ws-find-bar" id="wsFindBar" style="display:none">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;flex-shrink:0;color:var(--text-muted)"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="wsFindInput" class="ws-find-input" placeholder="Find in file…" autocomplete="off" />
+            <span class="ws-find-count" id="wsFindCount"></span>
+            <button class="ws-find-close" id="wsFindClose">✕</button>
+          </div>
           <div class="ws-code-header">
             <span class="ws-code-filename" id="wsCodeFilename">index.js</span>
             <span class="ws-code-lang" id="wsCodeLang">JavaScript</span>
@@ -552,15 +579,17 @@
               <span id="wsPreviewUrl">http://localhost:3000</span>
             </div>
             <div class="ws-preview-btns">
-              <button class="ws-action-btn" title="Refresh">↻</button>
+              <button class="ws-action-btn" id="wsPreviewRefresh" title="Refresh">↻</button>
               <button class="ws-action-btn" title="Open in new tab">⊞</button>
             </div>
           </div>
-          <div class="ws-preview-frame">
-            <div class="ws-preview-placeholder">
-              <div class="ws-preview-icon">▶</div>
-              <p>App is running</p>
-              <span id="wsPreviewStatus">Serving on port 3000</span>
+          <div class="ws-preview-frame" id="wsPreviewFrame">
+            <div class="ws-sim-app" id="wsSimApp">
+              <!-- simulated app; populated by JS -->
+              <div class="ws-sim-loading" id="wsSimLoading">
+                <div class="ws-sim-spinner"></div>
+                <span>Starting server…</span>
+              </div>
             </div>
           </div>
         </div>

@@ -1797,3 +1797,289 @@ document.getElementById('projectsSearch').addEventListener('input', function () 
     if (metaEl) metaEl.innerHTML = hlMatch(metaEl.textContent, q);
   });
 });
+
+// ════════════════════════════════════════════════════════════
+// GREETING TYPING ANIMATION
+// ════════════════════════════════════════════════════════════
+(function typeGreeting() {
+  const el = document.querySelector('.prompt-heading');
+  if (!el) return;
+  const fullText = el.textContent;
+  el.textContent = '';
+  el.classList.add('typing');
+  let i = 0;
+  const timer = setInterval(() => {
+    el.textContent += fullText[i++];
+    if (i >= fullText.length) {
+      clearInterval(timer);
+      el.classList.remove('typing');
+    }
+  }, 28);
+})();
+
+// ════════════════════════════════════════════════════════════
+// SKELETON LOADER FOR PROJECTS
+// ════════════════════════════════════════════════════════════
+(function initSkeletonLoader() {
+  const grid = document.getElementById('projectsGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  for (let i = 0; i < 4; i++) {
+    const card = document.createElement('div');
+    card.className = 'skeleton-card';
+    card.innerHTML = `<div class="sk-circle"></div><div class="sk-lines"><div class="sk-line" style="width:70%"></div><div class="sk-line sk-line-short"></div></div>`;
+    grid.appendChild(card);
+  }
+  setTimeout(() => renderProjects('all'), 400);
+})();
+
+// ════════════════════════════════════════════════════════════
+// CTRL+F FIND BAR
+// ════════════════════════════════════════════════════════════
+(function initFindBar() {
+  const findBar   = document.getElementById('wsFindBar');
+  const findInput = document.getElementById('wsFindInput');
+  const findCount = document.getElementById('wsFindCount');
+  const findClose = document.getElementById('wsFindClose');
+  if (!findBar) return;
+
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'f' && workspace.classList.contains('open')) {
+      e.preventDefault();
+      findBar.style.display = '';
+      findInput.focus();
+      findInput.select();
+    }
+    if (e.key === 'Escape' && findBar.style.display !== 'none') {
+      findBar.style.display = 'none';
+    }
+  });
+
+  findClose.addEventListener('click', () => { findBar.style.display = 'none'; });
+
+  findInput.addEventListener('input', () => {
+    const q = findInput.value.trim();
+    if (!q) { findCount.textContent = ''; return; }
+    const text = document.getElementById('wsCodeContent')?.textContent || '';
+    try {
+      const matches = [...text.matchAll(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi'))];
+      findCount.textContent = matches.length
+        ? `${matches.length} match${matches.length !== 1 ? 'es' : ''}`
+        : 'No results';
+      findCount.style.color = matches.length ? '#22c55e' : '#ef4444';
+    } catch { findCount.textContent = 'Invalid pattern'; }
+  });
+})();
+
+// ════════════════════════════════════════════════════════════
+// OPEN FILES TAB BAR
+// ════════════════════════════════════════════════════════════
+let openFilesList = [];
+let currentOpenFileName = null;
+
+function renderOpenFilesBar(stack) {
+  const bar = document.getElementById('wsOpenFilesBar');
+  if (!bar) return;
+  bar.innerHTML = '';
+  openFilesList.forEach(file => {
+    const tab = document.createElement('div');
+    tab.className = `ws-open-file-tab${file.name === currentOpenFileName ? ' active' : ''}`;
+    tab.innerHTML = `${getFileIconHtml(file.name)}<span style="margin-left:2px">${file.name}</span><button class="ws-open-file-tab-close" title="Close">✕</button>`;
+    tab.addEventListener('click', e => {
+      if (e.target.closest('.ws-open-file-tab-close')) {
+        openFilesList = openFilesList.filter(f => f.name !== file.name);
+        if (currentOpenFileName === file.name) {
+          currentOpenFileName = openFilesList[openFilesList.length - 1]?.name || null;
+        }
+        renderOpenFilesBar(stack);
+      } else {
+        currentOpenFileName = file.name;
+        if (file.name.endsWith('.md')) {
+          showMarkdownPreview(file.name, stack);
+        } else {
+          showCodeView();
+          document.getElementById('wsCodeFilename').textContent = file.name;
+          const sbFile = document.getElementById('wsStatusFile');
+          if (sbFile) sbFile.textContent = file.name;
+        }
+        renderOpenFilesBar(stack);
+      }
+    });
+    bar.appendChild(tab);
+  });
+}
+
+// patch renderFileTree to also open files in bar
+const _rftForOpenFiles = renderFileTree;
+function renderFileTree(stack) {
+  _rftForOpenFiles(stack);
+  openFilesList = [];
+  currentOpenFileName = (filesByStack[stack] || filesByStack['Node.js'])[0]?.name || null;
+  openFilesList.push((filesByStack[stack] || filesByStack['Node.js'])[0]);
+  renderOpenFilesBar(stack);
+
+  // attach open-in-bar to each file-item click
+  const tree = document.getElementById('wsFileTree');
+  tree.querySelectorAll('.ws-file-item').forEach((item, idx) => {
+    const f = (filesByStack[stack] || filesByStack['Node.js'])[idx];
+    if (!f) return;
+    item.addEventListener('click', () => {
+      currentOpenFileName = f.name;
+      if (!openFilesList.find(o => o.name === f.name)) openFilesList.push(f);
+      renderOpenFilesBar(stack);
+    });
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// SPLIT VIEW
+// ════════════════════════════════════════════════════════════
+let splitActive = false;
+document.getElementById('wsSplitBtn')?.addEventListener('click', function () {
+  splitActive = !splitActive;
+  document.getElementById('wsEditor').classList.toggle('split-active', splitActive);
+  this.classList.toggle('ws-split-btn-active', splitActive);
+  if (splitActive) {
+    showToast('Split view enabled', 'info');
+    // show preview in right pane after short delay
+    setTimeout(buildSimApp, 800);
+  } else {
+    showToast('Split view off', 'info');
+    openWsPane(activeWsPane);
+  }
+});
+
+// ════════════════════════════════════════════════════════════
+// SIMULATED APP PREVIEW
+// ════════════════════════════════════════════════════════════
+function buildSimApp() {
+  const container = document.getElementById('wsSimApp');
+  if (!container) return;
+  const name = activeProject?.name || 'my-app';
+  const stack = activeProject?.stack || 'Node.js';
+  const displayName = name.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+
+  const content = document.createElement('div');
+  content.className = 'ws-sim-content';
+  content.innerHTML = `
+    <div class="ws-sim-navbar">
+      <span>${displayName}</span>
+      <div class="ws-sim-nav-links"><span>Home</span><span>About</span><span>API</span><span>Docs</span></div>
+    </div>
+    <div class="ws-sim-hero">
+      <h1>${displayName}</h1>
+      <p>Built with ${stack} · Running on port 3000</p>
+      <button class="ws-sim-cta">Get Started →</button>
+    </div>
+    <div class="ws-sim-cards">
+      <div class="ws-sim-card">
+        <div class="ws-sim-card-title">⚡ Fast</div>
+        <div class="ws-sim-card-text">Optimised for performance and scalability.</div>
+        <div class="ws-sim-status-badge">● Live</div>
+      </div>
+      <div class="ws-sim-card">
+        <div class="ws-sim-card-title">🔒 Secure</div>
+        <div class="ws-sim-card-text">Built-in auth, CORS, and rate limiting.</div>
+      </div>
+      <div class="ws-sim-card">
+        <div class="ws-sim-card-title">🚀 Deployed</div>
+        <div class="ws-sim-card-text">Live at <a href="#" style="color:#3b82f6">${name}.repl.co</a></div>
+      </div>
+    </div>`;
+
+  const loading = document.getElementById('wsSimLoading');
+  if (loading) loading.style.display = 'none';
+  // animate in
+  content.style.opacity = '0';
+  container.appendChild(content);
+  setTimeout(() => { content.style.transition = 'opacity 0.4s'; content.style.opacity = '1'; }, 50);
+}
+
+// Auto-load preview when switching to preview pane
+const _origOpenWsPane = openWsPane;
+function openWsPane(pane) {
+  _origOpenWsPane(pane);
+  if (pane === 'preview') {
+    const loading = document.getElementById('wsSimLoading');
+    const existing = document.querySelector('.ws-sim-content');
+    if (!existing) {
+      if (loading) loading.style.display = '';
+      setTimeout(buildSimApp, 1200);
+    }
+  }
+}
+
+// Refresh button
+document.getElementById('wsPreviewRefresh')?.addEventListener('click', () => {
+  const app = document.getElementById('wsSimApp');
+  if (!app) return;
+  const old = app.querySelector('.ws-sim-content');
+  if (old) old.remove();
+  const loading = document.getElementById('wsSimLoading');
+  if (loading) loading.style.display = '';
+  setTimeout(buildSimApp, 1000);
+  showToast('Preview refreshed', 'info');
+});
+
+// ════════════════════════════════════════════════════════════
+// GIT COMMIT UI
+// ════════════════════════════════════════════════════════════
+let gitChanges = [];
+
+function updateGitPanel() {
+  const status  = document.getElementById('wsGitStatus');
+  const changed = document.getElementById('wsGitChanges');
+  if (!status || !changed) return;
+
+  if (gitChanges.length === 0) {
+    status.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" style="width:13px;height:13px;flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg><span>No changes</span>`;
+    changed.innerHTML = '';
+  } else {
+    status.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" style="width:13px;height:13px;flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span style="color:var(--text)">${gitChanges.length} change${gitChanges.length !== 1 ? 's' : ''}</span>`;
+    changed.innerHTML = gitChanges.map(c => `
+      <div class="ws-git-change-item">
+        <div class="ws-git-change-letter ${c.type}">${c.type}</div>
+        <span style="color:var(--text-muted)">${c.file}</span>
+      </div>`).join('');
+  }
+}
+
+document.getElementById('wsGitCommitBtn')?.addEventListener('click', () => {
+  const msg = document.getElementById('wsGitMsg')?.value.trim();
+  if (!msg) { showToast('Add a commit message first', 'error'); return; }
+  const btn = document.getElementById('wsGitCommitBtn');
+  btn.textContent = 'Committing…';
+  setTimeout(() => {
+    gitChanges = [];
+    updateGitPanel();
+    document.getElementById('wsGitMsg').value = '';
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><circle cx="12" cy="12" r="4"/><line x1="1.05" y1="12" x2="7" y2="12"/><line x1="17.01" y1="12" x2="22.96" y2="12"/></svg> Commit`;
+    showToast(`✓ Committed: "${msg}"`, 'success');
+  }, 900);
+});
+
+// simulate dirty state after AI enhance
+const _wsAiEnhanceBtn = document.getElementById('wsCodeAiBtn');
+_wsAiEnhanceBtn?.addEventListener('click', () => {
+  setTimeout(() => {
+    const file = document.getElementById('wsCodeFilename')?.textContent || 'index.js';
+    if (!gitChanges.find(c => c.file === file)) {
+      gitChanges.push({ type: 'M', file });
+      updateGitPanel();
+    }
+  }, 1700);
+}, true);
+
+// FILE SIZE IN STATUS BAR (update after loadCode)
+const _origLoadCodeForSize = loadCode;
+function loadCode(stack) {
+  _origLoadCodeForSize(stack);
+  const code = codeTemplates[stack] || codeTemplates['Node.js'];
+  const bytes = new TextEncoder().encode(code).length;
+  const label = bytes < 1024 ? `${bytes} B` : `${(bytes/1024).toFixed(1)} KB`;
+  const sbFile = document.getElementById('wsStatusFile');
+  if (sbFile) {
+    const file = (filesByStack[stack] || filesByStack['Node.js'])[0];
+    sbFile.textContent = `${file?.name || 'index.js'} · ${label}`;
+  }
+}
