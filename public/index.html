@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tube Shorts Pro — Creator Growth App</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <div class="logo-icon">TS</div>
+        <div class="logo-text">
+          <span class="logo-title">Tube Shorts Pro</span>
+          <span class="logo-sub">Creator Growth App</span>
+        </div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" data-page="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a>
+      <a href="#" class="nav-item" data-page="titles">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        Title Optimizer
+      </a>
+      <a href="#" class="nav-item" data-page="thumbnails">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        Thumbnail Studio
+      </a>
+      <a href="#" class="nav-item" data-page="analytics">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Analytics
+      </a>
+      <a href="#" class="nav-item" data-page="seo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        SEO Checker
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="upgrade-card">
+        <div class="upgrade-badge">✦ PRO</div>
+        <p>Unlock unlimited AI suggestions &amp; real YouTube data.</p>
+        <button class="btn-upgrade">Upgrade to Pro</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main" id="main">
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">☰</button>
+      <div class="topbar-left">
+        <h1 class="page-title" id="pageTitle">Dashboard</h1>
+      </div>
+      <div class="topbar-right">
+        <div class="search-bar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="Search tools…" />
+        </div>
+        <button class="btn-chat" id="chatToggle" title="AI Assistant">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <div class="content" id="content">
+
+      <!-- DASHBOARD PAGE -->
+      <section class="page active" id="page-dashboard">
+        <div class="hero-banner">
+          <div class="hero-text">
+            <p class="hero-label">CREATOR GROWTH APP</p>
+            <h2 class="hero-headline">Optimize Shorts titles,<br/>thumbnails, SEO, analytics</h2>
+            <p class="hero-sub">Everything you need to grow faster on YouTube Shorts — all in one dashboard.</p>
+            <button class="btn-primary" data-goto="titles">Start Optimizing →</button>
+          </div>
+          <div class="hero-graphic" aria-hidden="true">
+            <div class="hero-rings">
+              <div class="ring r1"></div>
+              <div class="ring r2"></div>
+              <div class="ring r3"></div>
+            </div>
+            <div class="hero-play">▶</div>
+          </div>
+        </div>
+
+        <!-- KPI strip -->
+        <div class="kpi-strip" id="kpiStrip">
+          <div class="kpi-card">
+            <span class="kpi-label">Total Views</span>
+            <span class="kpi-value">124,350</span>
+            <span class="kpi-delta up">↑ 18%</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Subscribers</span>
+            <span class="kpi-value">3,820</span>
+            <span class="kpi-delta up">↑ 31%</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Watch Time (hrs)</span>
+            <span class="kpi-value">9,210</span>
+            <span class="kpi-delta up">↑ 12%</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Avg CTR</span>
+            <span class="kpi-value">6.4%</span>
+            <span class="kpi-delta up">↑ 0.9%</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Impressions</span>
+            <span class="kpi-value">1.94M</span>
+            <span class="kpi-delta up">↑ 22%</span>
+          </div>
+        </div>
+
+        <!-- Quick tools -->
+        <h3 class="section-title">Quick Tools</h3>
+        <div class="tool-grid">
+          <div class="tool-card" data-goto="titles">
+            <div class="tool-icon title-icon">T</div>
+            <h4>Title Optimizer</h4>
+            <p>Generate high-CTR title suggestions powered by proven hooks and power words.</p>
+            <span class="tool-arrow">→</span>
+          </div>
+          <div class="tool-card" data-goto="thumbnails">
+            <div class="tool-icon thumb-icon">🎨</div>
+            <h4>Thumbnail Studio</h4>
+            <p>Get color palettes, font pairings, and overlay ideas crafted for Shorts.</p>
+            <span class="tool-arrow">→</span>
+          </div>
+          <div class="tool-card" data-goto="analytics">
+            <div class="tool-icon analytics-icon">📈</div>
+            <h4>Analytics</h4>
+            <p>View your growth metrics, top videos, and audience device breakdown.</p>
+            <span class="tool-arrow">→</span>
+          </div>
+          <div class="tool-card" data-goto="seo">
+            <div class="tool-icon seo-icon">🔍</div>
+            <h4>SEO Checker</h4>
+            <p>Score your video metadata and get actionable fixes to rank higher.</p>
+            <span class="tool-arrow">→</span>
+          </div>
+        </div>
+
+        <!-- Top videos -->
+        <h3 class="section-title">Top Performing Shorts</h3>
+        <div class="top-videos" id="topVideos">
+          <div class="loading-spinner"></div>
+        </div>
+      </section>
+
+      <!-- TITLE OPTIMIZER PAGE -->
+      <section class="page" id="page-titles">
+        <div class="page-header">
+          <h2>Title Optimizer</h2>
+          <p>Enter your topic and get 5 high-CTR title suggestions with scores and tips.</p>
+        </div>
+        <div class="card">
+          <div class="form-group">
+            <label for="titleTopic">Your Topic or Current Title</label>
+            <div class="input-row">
+              <input type="text" id="titleTopic" placeholder="e.g. beginner guitar, productivity hacks, skincare routine…" />
+              <button class="btn-primary" id="titleOptimizeBtn">Generate Titles</button>
+            </div>
+          </div>
+        </div>
+        <div id="titleResults" class="results-grid hidden"></div>
+      </section>
+
+      <!-- THUMBNAIL STUDIO PAGE -->
+      <section class="page" id="page-thumbnails">
+        <div class="page-header">
+          <h2>Thumbnail Studio</h2>
+          <p>Get palette, font, and overlay recommendations for your Shorts thumbnail.</p>
+        </div>
+        <div class="card">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="thumbTopic">Video Topic</label>
+              <input type="text" id="thumbTopic" placeholder="e.g. weight loss tips" />
+            </div>
+            <div class="form-group">
+              <label for="thumbMood">Mood / Energy</label>
+              <select id="thumbMood">
+                <option value="high_energy">High Energy 🔥</option>
+                <option value="calm">Calm / Chill 🌊</option>
+                <option value="vibrant">Vibrant / Pop 💥</option>
+                <option value="minimal">Minimal / Clean ◻</option>
+              </select>
+            </div>
+            <button class="btn-primary align-bottom" id="thumbGenerateBtn">Get Suggestions</button>
+          </div>
+        </div>
+        <div id="thumbResults" class="hidden"></div>
+      </section>
+
+      <!-- ANALYTICS PAGE -->
+      <section class="page" id="page-analytics">
+        <div class="page-header">
+          <h2>Analytics Overview</h2>
+          <p>Your channel performance at a glance. Connect YouTube API for live data.</p>
+        </div>
+        <div id="analyticsContent">
+          <div class="loading-spinner"></div>
+        </div>
+      </section>
+
+      <!-- SEO CHECKER PAGE -->
+      <section class="page" id="page-seo">
+        <div class="page-header">
+          <h2>SEO Checker</h2>
+          <p>Score your video metadata and get specific improvements to rank higher.</p>
+        </div>
+        <div class="card">
+          <div class="form-group">
+            <label for="seoTitle">Video Title</label>
+            <input type="text" id="seoTitle" placeholder="Your video title" />
+          </div>
+          <div class="form-group">
+            <label for="seoDesc">Description</label>
+            <textarea id="seoDesc" rows="4" placeholder="Your video description…"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="seoTags">Tags (comma-separated)</label>
+            <input type="text" id="seoTags" placeholder="shorts, tutorial, beginner, youtube, tips" />
+          </div>
+          <button class="btn-primary" id="seoCheckBtn">Check SEO Score</button>
+        </div>
+        <div id="seoResults" class="hidden"></div>
+      </section>
+
+    </div><!-- /content -->
+  </main>
+
+  <!-- AI CHAT PANEL -->
+  <aside class="chat-panel" id="chatPanel">
+    <div class="chat-header">
+      <div class="chat-title">
+        <div class="chat-avatar">AI</div>
+        <div>
+          <strong>Shorts AI</strong>
+          <span class="chat-status">● Online</span>
+        </div>
+      </div>
+      <button class="chat-close" id="chatClose">✕</button>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-msg bot">
+        <div class="msg-bubble">Hi! I'm your Tube Shorts Pro AI. Ask me anything about titles, thumbnails, SEO, analytics, or growth 🚀</div>
+      </div>
+    </div>
+    <div class="chat-input-row">
+      <input type="text" id="chatInput" placeholder="Ask me anything…" />
+      <button class="btn-send" id="chatSendBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </aside>
+  <div class="chat-overlay" id="chatOverlay"></div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
