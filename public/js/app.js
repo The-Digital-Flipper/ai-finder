@@ -3428,3 +3428,266 @@ document.querySelectorAll('[id*="Publish"], [id*="publish"]').forEach(btn => {
 
 // Step 6: invite
 document.getElementById('wsInviteBtn')?.addEventListener('click', () => setOnboardingStep('step-invite'), true);
+
+// ════════════════════════════════════════════════════════════
+// PANEL RESIZE HANDLE
+// ════════════════════════════════════════════════════════════
+(function initPanelResize() {
+  const handle = document.getElementById('wsPanelResize');
+  const panel  = document.getElementById('wsPanel');
+  if (!handle || !panel) return;
+  let resizing = false, startX = 0, startW = 0;
+
+  handle.addEventListener('mousedown', e => {
+    resizing = true; startX = e.clientX; startW = panel.offsetWidth;
+    handle.classList.add('dragging');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', e => {
+    if (!resizing) return;
+    const w = Math.max(140, Math.min(400, startW + (e.clientX - startX)));
+    panel.style.width = w + 'px';
+  });
+  document.addEventListener('mouseup', () => {
+    if (!resizing) return;
+    resizing = false;
+    handle.classList.remove('dragging');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  });
+})();
+
+// ════════════════════════════════════════════════════════════
+// 3D CARD TILT ON HOVER
+// ════════════════════════════════════════════════════════════
+function add3DTilt(card) {
+  if (card.dataset.tiltInit) return;
+  card.dataset.tiltInit = '1';
+  card.addEventListener('mousemove', e => {
+    const rect = card.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width - 0.5) * 10;
+    const y = ((e.clientY - rect.top)  / rect.height - 0.5) * -10;
+    card.style.transform = `perspective(600px) rotateX(${y}deg) rotateY(${x}deg) translateY(-3px)`;
+    card.style.boxShadow = `${-x*0.5}px ${-y*0.5+12}px 28px rgba(0,0,0,0.4)`;
+  });
+  card.addEventListener('mouseleave', () => {
+    card.style.transform = '';
+    card.style.boxShadow = '';
+  });
+}
+
+const _rpFor3D = renderProjects;
+function renderProjects(filter) {
+  _rpFor3D(filter);
+  document.querySelectorAll('.project-card').forEach(add3DTilt);
+}
+
+// ════════════════════════════════════════════════════════════
+// RICH AI MARKDOWN RESPONSES
+// ════════════════════════════════════════════════════════════
+function renderAIMarkdown(text) {
+  return text
+    // code blocks ```lang\n...\n```
+    .replace(/```(\w*)\n([\s\S]*?)```/g, (_,lang,code) =>
+      `<div class="ai-code-block"><div class="ai-code-lang">${lang||'code'}</div><pre class="ai-code-pre">${code.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre></div>`)
+    // inline code `...`
+    .replace(/`([^`]+)`/g, '<code class="ai-inline-code">$1</code>')
+    // bold **...**
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    // italic *...*
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    // list items - ...
+    .replace(/^- (.+)/gm, '<li>$1</li>')
+    .replace(/<li>(.*?)<\/li>/gs, '<ul>$&</ul>')
+    .replace(/<\/ul><ul>/g, '')
+    // newlines
+    .replace(/\n\n/g, '<br><br>')
+    .replace(/\n/g, '<br>');
+}
+
+// patch the AI streaming to use rendered markdown
+const _origStreamAI = streamAIResponse;
+function streamAIResponse(msg, el) {
+  // let original stream; patch final render
+  _origStreamAI(msg, el);
+}
+
+// Patch appendAIMessage to render markdown for assistant messages
+const _origAppendAI = appendAIMessage;
+function appendAIMessage(role, html) {
+  if (role === 'assistant') {
+    // render with markdown
+    const div = document.createElement('div');
+    div.className = 'ai-msg ai-msg-assistant';
+    div.innerHTML = renderAIMarkdown(html);
+    const msgs = document.getElementById('wsAiMessages');
+    msgs?.appendChild(div);
+    msgs && (msgs.scrollTop = msgs.scrollHeight);
+    return div;
+  }
+  return _origAppendAI(role, html);
+}
+
+// ════════════════════════════════════════════════════════════
+// NEW FILE DIALOG
+// ════════════════════════════════════════════════════════════
+document.getElementById('wsNewFileBtn')?.addEventListener('click', () => {
+  const row = document.getElementById('wsNewFileRow');
+  if (!row) return;
+  row.style.display = '';
+  const input = document.getElementById('wsNewFileName');
+  input?.focus();
+  input && (input.value = '');
+});
+
+function createNewFile(name) {
+  const row = document.getElementById('wsNewFileRow');
+  if (!name.trim() || !name.includes('.')) { showToast('Enter a valid filename (e.g. utils.js)', 'error'); return; }
+  const tree = document.getElementById('wsFileTree');
+  if (!tree) return;
+  const stack = activeProject?.stack || 'Node.js';
+  const item  = document.createElement('div');
+  item.className = 'ws-file-item';
+  item.innerHTML = `${getFileIconHtml(name)}<span class="ws-file-name">${name}</span>`;
+  item.addEventListener('click', () => {
+    tree.querySelectorAll('.ws-file-item').forEach(el => el.classList.remove('active'));
+    item.classList.add('active');
+    document.getElementById('wsCodeFilename').textContent = name;
+    openWsPane('editor');
+    updateBreadcrumb(activeProject, name);
+  });
+  item.addEventListener('contextmenu', e => { e.preventDefault(); showFileContextMenu(e.clientX, e.clientY, name, item); });
+  tree.appendChild(item);
+  row.style.display = 'none';
+  showToast(`✓ Created ${name}`, 'success');
+  // simulate git change
+  if (!gitChanges.find(c => c.file === name)) { gitChanges.push({ type: 'A', file: name }); updateGitPanel(); }
+}
+
+document.getElementById('wsNewFileCreate')?.addEventListener('click', () => {
+  createNewFile(document.getElementById('wsNewFileName')?.value || '');
+});
+document.getElementById('wsNewFileCancel')?.addEventListener('click', () => {
+  document.getElementById('wsNewFileRow').style.display = 'none';
+});
+document.getElementById('wsNewFileName')?.addEventListener('keypress', e => {
+  if (e.key === 'Enter') createNewFile(e.target.value);
+});
+document.getElementById('wsNewFileName')?.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.getElementById('wsNewFileRow').style.display = 'none';
+});
+
+// ════════════════════════════════════════════════════════════
+// PROBLEMS PANEL
+// ════════════════════════════════════════════════════════════
+const MOCK_PROBLEMS = {
+  'Node.js': [
+    { type:'error', msg:"'app' is assigned a value but never used", loc:'index.js:5:7' },
+    { type:'warn',  msg:"Missing semicolon", loc:'index.js:12:1' },
+    { type:'warn',  msg:"Unexpected console statement", loc:'routes.js:8:3' },
+    { type:'info',  msg:"Consider using 'const' instead of 'let'", loc:'middleware.js:3:5' },
+  ],
+  Python: [
+    { type:'warn', msg:"Module 'os' imported but unused", loc:'main.py:3:0' },
+    { type:'warn', msg:"Line too long (82 > 79 characters)", loc:'main.py:24:0' },
+  ],
+  React: [
+    { type:'warn', msg:"React Hook useEffect has a missing dependency: 'fetchData'", loc:'App.jsx:18:6' },
+    { type:'info', msg:"Consider moving this function outside the component", loc:'App.jsx:12:2' },
+  ],
+};
+
+function initProblemsPanel(stack) {
+  const list = document.getElementById('wsProblemsListEl');
+  const countEl = document.getElementById('wsProblemsCount');
+  if (!list) return;
+  const problems = MOCK_PROBLEMS[stack] || [];
+  list.innerHTML = problems.map(p => `
+    <div class="ws-problem-item">
+      <span class="ws-prob-icon ${p.type}">${p.type==='error'?'●':p.type==='warn'?'▲':'ℹ'}</span>
+      <div class="ws-prob-body">
+        <div class="ws-prob-msg">${p.msg}</div>
+        <div class="ws-prob-loc">${p.loc}</div>
+      </div>
+    </div>`).join('');
+  if (countEl) countEl.textContent = problems.length;
+}
+
+// ════════════════════════════════════════════════════════════
+// COLOR-CODED TERMINAL OUTPUT
+// ════════════════════════════════════════════════════════════
+function colorizeTermLine(text) {
+  if (/error|Error|ERR!/i.test(text))   return `<span style="color:#f87171">${text}</span>`;
+  if (/warn|WARN|warning/i.test(text))  return `<span style="color:#fbbf24">${text}</span>`;
+  if (/success|done|✓|started|listening|ready/i.test(text)) return `<span style="color:#4ade80">${text}</span>`;
+  if (/info|http|GET|POST|PUT|DELETE/i.test(text)) return `<span style="color:#60a5fa">${text}</span>`;
+  return text;
+}
+
+// Patch bootTerminal to colorize output
+const _origBootTerminal = bootTerminal;
+function bootTerminal(project) {
+  _origBootTerminal(project);
+  // Re-colorize existing lines
+  setTimeout(() => {
+    document.querySelectorAll('.ws-terminal-output .terminal-line').forEach(line => {
+      const text = line.textContent;
+      if (!text.includes('$')) line.innerHTML = colorizeTermLine(text);
+    });
+    initProblemsPanel(project.stack);
+  }, 500);
+}
+
+// ════════════════════════════════════════════════════════════
+// TERMINAL SESSION TABS
+// ════════════════════════════════════════════════════════════
+const TERM_SESSIONS = {
+  bash: null,
+  node: ['node v20.11.0', '> '],
+  repl: ['Python 3.12.0 (default)', '>>> '],
+};
+let currentTermSession = 'bash';
+
+document.querySelectorAll('.ws-term-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.ws-term-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const session = tab.dataset.session;
+    currentTermSession = session;
+    const output = document.getElementById('wsTerminalOutput');
+    const promptEl = document.getElementById('wsTermPrompt');
+    if (!output) return;
+    output.innerHTML = '';
+    if (session === 'node') {
+      const preamble = TERM_SESSIONS.node;
+      preamble.forEach(line => {
+        const el = document.createElement('div');
+        el.className = 'terminal-line';
+        el.textContent = line;
+        output.appendChild(el);
+      });
+      if (promptEl) promptEl.textContent = '>';
+    } else if (session === 'repl') {
+      const preamble = TERM_SESSIONS.repl;
+      preamble.forEach(line => {
+        const el = document.createElement('div');
+        el.className = 'terminal-line';
+        el.innerHTML = `<span style="color:#4ade80">${line}</span>`;
+        output.appendChild(el);
+      });
+      if (promptEl) promptEl.textContent = '>>>';
+    } else {
+      if (promptEl) promptEl.textContent = '$';
+      if (activeProject) bootTerminal(activeProject);
+    }
+  });
+});
+
+// patch loadCode to init problems panel too
+const _lcForProblems = loadCode;
+function loadCode(stack) {
+  _lcForProblems(stack);
+  setTimeout(() => initProblemsPanel(stack), 100);
+}

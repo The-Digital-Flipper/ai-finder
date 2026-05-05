@@ -599,6 +599,12 @@
             </div>
           </div>
           <div class="ws-file-tree" id="wsFileTree"></div>
+          <!-- new file inline dialog -->
+          <div class="ws-new-file-row" id="wsNewFileRow" style="display:none">
+            <input type="text" class="ws-new-file-input" id="wsNewFileName" placeholder="filename.js" autocomplete="off" />
+            <button class="ws-panel-btn" id="wsNewFileCreate" title="Create">✓</button>
+            <button class="ws-panel-btn" id="wsNewFileCancel" title="Cancel">✕</button>
+          </div>
         </div>
 
         <div class="ws-panel-content hidden" id="wsPanelGit">
@@ -633,6 +639,9 @@
         </div>
 
       </div><!-- /ws-panel -->
+
+      <!-- Panel resize handle -->
+      <div class="ws-panel-resize" id="wsPanelResize"></div>
 
       <!-- main editor / panes -->
       <div class="ws-editor" id="wsEditor">
@@ -711,14 +720,27 @@
         <!-- TERMINAL pane -->
         <div class="ws-editor-pane" id="pane-terminal">
           <div class="ws-terminal-bar">
-            <span>Terminal</span>
+            <div class="ws-term-tabs" id="wsTermTabs">
+              <button class="ws-term-tab active" data-session="bash">bash</button>
+              <button class="ws-term-tab" data-session="node">node</button>
+              <button class="ws-term-tab" data-session="repl">REPL</button>
+            </div>
             <button class="ws-action-btn" id="wsTermClearBtn" style="font-size:11px">Clear</button>
           </div>
           <div class="ws-terminal-output" id="wsTerminalOutput"></div>
           <div class="ws-terminal-input-row">
-            <span class="ws-prompt">$</span>
+            <span class="ws-prompt" id="wsTermPrompt">$</span>
             <input type="text" class="ws-terminal-input" id="wsTerminalInput" placeholder="Run a command…" />
           </div>
+        </div>
+
+        <!-- PROBLEMS pane -->
+        <div class="ws-editor-pane" id="pane-problems">
+          <div class="ws-problems-bar">
+            <span>Problems</span>
+            <span class="ws-problems-count" id="wsProblemsCount">0</span>
+          </div>
+          <div class="ws-problems-list" id="wsProblemsListEl"></div>
         </div>
 
         <!-- TOOL DETAIL panes -->
