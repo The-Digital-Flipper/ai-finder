@@ -1,0 +1,2053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Finder — Build Anything with AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    /* ─────────────────────────────────
+       RESET & TOKENS
+    ───────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0a0a0f;
+      --bg2:      #111118;
+      --bg3:      #16161f;
+      --bg4:      #1e1e2a;
+      --border:   rgba(255,255,255,0.07);
+      --border2:  rgba(255,255,255,0.12);
+      --text:     #f0f0f8;
+      --muted:    #888899;
+      --dim:      #55556a;
+      --accent:   #3b82f6;
+      --accent2:  #8b5cf6;
+      --green:    #22c55e;
+      --pink:     #ec4899;
+      --r:        10px;
+      --r2:       16px;
+      --r3:       24px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      font-size: 15px;
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; }
+
+    /* ─────────────────────────────────
+       SCROLLBAR
+    ───────────────────────────────── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 3px; }
+
+    /* ─────────────────────────────────
+       NOISE OVERLAY
+    ───────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.022;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ─────────────────────────────────
+       GLOWS
+    ───────────────────────────────── */
+    .glow-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ─────────────────────────────────
+       NAV
+    ───────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      height: 60px;
+      background: rgba(10,10,15,0.85);
+      backdrop-filter: blur(20px) saturate(1.5);
+      border-bottom: 1px solid var(--border);
+      transition: background 0.3s;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .nav-logo-icon {
+      width: 30px; height: 30px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-links a {
+      padding: 6px 12px;
+      border-radius: var(--r);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      transition: color 0.15s, background 0.15s;
+    }
+    .nav-links a:hover { color: var(--text); background: var(--bg4); }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-ghost {
+      padding: 7px 16px;
+      border: 1px solid var(--border2);
+      border-radius: var(--r);
+      background: none;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 500;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .btn-ghost:hover { background: var(--bg4); border-color: rgba(255,255,255,0.2); }
+
+    .btn-primary {
+      padding: 8px 18px;
+      border-radius: var(--r);
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .btn-primary:hover { background: #2563eb; transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+
+    /* ─────────────────────────────────
+       HERO
+    ───────────────────────────────── */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      overflow: hidden;
+    }
+
+    .hero .glow-orb.a {
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(59,130,246,0.18) 0%, transparent 70%);
+      top: -100px; left: 50%;
+      transform: translateX(-50%);
+    }
+    .hero .glow-orb.b {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(139,92,246,0.14) 0%, transparent 70%);
+      bottom: 80px; right: 5%;
+    }
+    .hero .glow-orb.c {
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(236,72,153,0.10) 0%, transparent 70%);
+      bottom: 80px; left: 5%;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border: 1px solid rgba(59,130,246,0.35);
+      border-radius: 100px;
+      background: rgba(59,130,246,0.08);
+      font-size: 12px;
+      font-weight: 500;
+      color: #93c5fd;
+      margin-bottom: 28px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-badge-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse-dot 2s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(59,130,246,0.5); }
+      50% { opacity: 0.7; box-shadow: 0 0 0 5px rgba(59,130,246,0); }
+    }
+
+    .hero-heading {
+      font-size: clamp(44px, 7vw, 88px);
+      font-weight: 900;
+      line-height: 1.0;
+      letter-spacing: -2px;
+      margin-bottom: 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-heading .line1 { display: block; color: var(--text); }
+    .hero-heading .grad {
+      display: block;
+      background: linear-gradient(90deg, #60a5fa, #a78bfa, #f472b6, #fb923c);
+      background-size: 300% 100%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: grad-shift 6s linear infinite;
+    }
+
+    @keyframes grad-shift {
+      0%   { background-position: 0% 50%; }
+      100% { background-position: 300% 50%; }
+    }
+
+    .hero-sub {
+      font-size: clamp(16px, 2vw, 20px);
+      font-weight: 400;
+      color: var(--muted);
+      max-width: 560px;
+      margin: 0 auto 40px;
+      position: relative;
+      z-index: 1;
+      line-height: 1.65;
+    }
+
+    .hero-ctas {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+      z-index: 1;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn-hero {
+      padding: 14px 30px;
+      border-radius: var(--r2);
+      font-size: 15px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .btn-hero.fill {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      box-shadow: 0 4px 24px rgba(59,130,246,0.35);
+    }
+    .btn-hero.fill:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(59,130,246,0.45);
+    }
+
+    .btn-hero.outline {
+      background: none;
+      border: 1px solid var(--border2);
+      color: var(--text);
+    }
+    .btn-hero.outline:hover { background: var(--bg4); transform: translateY(-1px); }
+
+    .hero-note {
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--dim);
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ─────────────────────────────────
+       HERO DEMO WINDOW
+    ───────────────────────────────── */
+    .hero-demo {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 860px;
+      margin: 60px auto 0;
+      border-radius: var(--r3);
+      overflow: hidden;
+      border: 1px solid var(--border2);
+      box-shadow: 0 40px 120px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04);
+    }
+
+    .demo-titlebar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: #181820;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .demo-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .demo-dot.r { background: #ff5f56; }
+    .demo-dot.y { background: #ffbd2e; }
+    .demo-dot.g { background: #27c93f; }
+
+    .demo-title {
+      flex: 1;
+      text-align: center;
+      font-size: 12px;
+      color: var(--dim);
+      font-weight: 500;
+    }
+
+    .demo-body {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      height: 420px;
+      background: #0f0f16;
+    }
+
+    .demo-sidebar {
+      background: #13131b;
+      border-right: 1px solid var(--border);
+      padding: 12px 0;
+    }
+
+    .demo-sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      font-size: 12px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .demo-sidebar-item.active {
+      background: rgba(59,130,246,0.12);
+      color: var(--text);
+    }
+
+    .demo-sidebar-item .dsi-icon {
+      width: 22px; height: 22px;
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+
+    .demo-main {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .demo-prompt-area {
+      padding: 28px 32px;
+      border-bottom: 1px solid var(--border);
+      background: #0f0f16;
+    }
+
+    .demo-prompt-label {
+      font-size: 11px;
+      color: var(--dim);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .demo-prompt-heading {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 16px;
+    }
+
+    .demo-prompt-box {
+      background: var(--bg4);
+      border: 1px solid var(--border2);
+      border-radius: var(--r2);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .demo-prompt-text {
+      font-size: 13px;
+      color: var(--muted);
+      flex: 1;
+    }
+
+    .demo-prompt-text .typed-cursor {
+      display: inline-block;
+      width: 2px;
+      height: 14px;
+      background: var(--accent);
+      margin-left: 2px;
+      vertical-align: middle;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink { 0%,50%,100%{opacity:1} 25%,75%{opacity:0} }
+
+    .demo-prompt-send {
+      width: 30px; height: 30px;
+      border-radius: 8px;
+      background: var(--accent);
+      border: none;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .demo-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      padding: 16px 20px;
+    }
+
+    .demo-card {
+      background: var(--bg4);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 12px;
+      transition: border-color 0.2s, transform 0.2s;
+      animation: card-pop 0.5s backwards;
+    }
+
+    .demo-card:nth-child(1) { animation-delay: 0.1s; }
+    .demo-card:nth-child(2) { animation-delay: 0.2s; }
+    .demo-card:nth-child(3) { animation-delay: 0.3s; }
+
+    @keyframes card-pop {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .demo-card-icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .demo-card-name { font-size: 11px; font-weight: 600; margin-bottom: 3px; }
+    .demo-card-meta { font-size: 10px; color: var(--dim); }
+
+    /* ─────────────────────────────────
+       SOCIAL PROOF STRIP
+    ───────────────────────────────── */
+    .proof-strip {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg2);
+      padding: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 48px;
+      flex-wrap: wrap;
+    }
+
+    .proof-item {
+      text-align: center;
+    }
+
+    .proof-num {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .proof-label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .proof-sep {
+      width: 1px;
+      height: 40px;
+      background: var(--border);
+    }
+
+    /* ─────────────────────────────────
+       SECTION WRAPPER
+    ───────────────────────────────── */
+    .section-wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 96px 24px;
+    }
+
+    .section-label {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 14px;
+    }
+
+    .section-title {
+      font-size: clamp(28px, 4vw, 46px);
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+
+    .section-sub {
+      font-size: 17px;
+      color: var(--muted);
+      max-width: 540px;
+      line-height: 1.65;
+    }
+
+    .text-center { text-align: center; }
+    .text-center .section-sub { margin-left: auto; margin-right: auto; }
+
+    /* ─────────────────────────────────
+       BENTO FEATURE GRID
+    ───────────────────────────────── */
+    .bento {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: auto auto;
+      gap: 16px;
+      margin-top: 56px;
+    }
+
+    .bento-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--r3);
+      padding: 28px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.25s, transform 0.25s;
+    }
+
+    .bento-card:hover {
+      border-color: var(--border2);
+      transform: translateY(-2px);
+    }
+
+    .bento-card.wide { grid-column: span 2; }
+    .bento-card.tall { grid-row: span 2; }
+
+    .bento-card .glow-orb {
+      width: 200px; height: 200px;
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+    .bento-card:hover .glow-orb { opacity: 1; }
+
+    .bento-icon {
+      width: 44px; height: 44px;
+      border-radius: var(--r2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      margin-bottom: 18px;
+    }
+
+    .bento-title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      margin-bottom: 8px;
+    }
+
+    .bento-text {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .bento-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 14px;
+      padding: 4px 10px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(59,130,246,0.12);
+      color: #93c5fd;
+      border: 1px solid rgba(59,130,246,0.2);
+    }
+
+    /* mini code snippet inside bento */
+    .mini-code {
+      margin-top: 20px;
+      background: #0a0a10;
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 14px 16px;
+      font-family: 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 12px;
+      line-height: 1.8;
+    }
+
+    .mc-kw  { color: #c792ea; }
+    .mc-fn  { color: #82aaff; }
+    .mc-str { color: #c3e88d; }
+    .mc-cmt { color: #546e7a; }
+    .mc-num { color: #f78c6c; }
+
+    /* AI chat mini */
+    .mini-chat {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .mini-msg {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    .mini-msg.ai { flex-direction: row-reverse; }
+
+    .mini-msg-av {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      font-size: 11px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .mini-msg.human .mini-msg-av { background: linear-gradient(135deg, #3b82f6, #8b5cf6); }
+    .mini-msg.ai .mini-msg-av    { background: linear-gradient(135deg, #22c55e, #06b6d4); }
+
+    .mini-msg-bubble {
+      font-size: 12px;
+      padding: 8px 12px;
+      border-radius: var(--r);
+      max-width: 200px;
+      line-height: 1.5;
+    }
+
+    .mini-msg.human .mini-msg-bubble { background: rgba(59,130,246,0.15); color: #c0d8ff; }
+    .mini-msg.ai    .mini-msg-bubble { background: var(--bg4); color: var(--muted); }
+
+    /* ─────────────────────────────────
+       HOW IT WORKS
+    ───────────────────────────────── */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+      margin-top: 56px;
+    }
+
+    .step {
+      text-align: center;
+      position: relative;
+    }
+
+    .step::after {
+      content: '→';
+      position: absolute;
+      top: 28px;
+      right: -20px;
+      font-size: 22px;
+      color: var(--dim);
+      z-index: 1;
+    }
+    .step:last-child::after { display: none; }
+
+    .step-num {
+      width: 60px; height: 60px;
+      border-radius: 50%;
+      border: 2px solid var(--border2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      font-weight: 800;
+      margin: 0 auto 20px;
+      background: var(--bg2);
+      position: relative;
+    }
+
+    .step-num::before {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      z-index: -1;
+      opacity: 0.3;
+    }
+
+    .step-title {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .step-text {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    /* ─────────────────────────────────
+       LIVE EDITOR DEMO
+    ───────────────────────────────── */
+    .live-demo-section {
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .live-demo-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+    }
+
+    .live-demo-text .section-title { font-size: 36px; }
+
+    .live-demo-check {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .check-icon {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: rgba(34,197,94,0.15);
+      border: 1px solid rgba(34,197,94,0.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+      flex-shrink: 0;
+      margin-top: 2px;
+      color: var(--green);
+    }
+
+    .check-text {
+      font-size: 15px;
+      color: var(--muted);
+    }
+
+    .check-text strong { color: var(--text); }
+
+    .editor-mock {
+      border-radius: var(--r3);
+      overflow: hidden;
+      border: 1px solid var(--border2);
+      box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+    }
+
+    .editor-mock-bar {
+      background: #181820;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .editor-mock-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .editor-mock-dot.r { background: #ff5f56; }
+    .editor-mock-dot.y { background: #ffbd2e; }
+    .editor-mock-dot.g { background: #27c93f; }
+
+    .editor-mock-tabs {
+      display: flex;
+      gap: 2px;
+      margin-left: 10px;
+    }
+
+    .editor-mock-tab {
+      padding: 3px 12px;
+      border-radius: 4px;
+      font-size: 11px;
+      color: var(--dim);
+    }
+    .editor-mock-tab.active { background: var(--bg4); color: var(--text); }
+
+    .editor-mock-body {
+      background: #0d0d14;
+      padding: 20px;
+      font-family: 'Fira Code', monospace;
+      font-size: 12.5px;
+      line-height: 2;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .editor-line {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .editor-ln {
+      color: var(--dim);
+      font-size: 11px;
+      min-width: 18px;
+      text-align: right;
+      user-select: none;
+    }
+
+    .editor-code { flex: 1; }
+
+    .editor-mock-footer {
+      background: var(--accent);
+      padding: 5px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 500;
+      color: #fff;
+    }
+
+    /* animated typing line */
+    .typing-line {
+      overflow: hidden;
+      white-space: nowrap;
+      animation: type-in 2.5s steps(40) infinite alternate;
+      border-right: 2px solid var(--accent);
+    }
+
+    @keyframes type-in {
+      from { width: 0; }
+      to   { width: 100%; }
+    }
+
+    /* ─────────────────────────────────
+       PRICING
+    ───────────────────────────────── */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-top: 56px;
+    }
+
+    .pricing-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--r3);
+      padding: 32px;
+      position: relative;
+      transition: border-color 0.25s, transform 0.2s;
+    }
+
+    .pricing-card:hover { transform: translateY(-3px); border-color: var(--border2); }
+
+    .pricing-card.featured {
+      border-color: var(--accent);
+      background: linear-gradient(160deg, rgba(59,130,246,0.07) 0%, var(--bg2) 100%);
+    }
+
+    .pricing-badge {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 14px;
+      border-radius: 100px;
+      white-space: nowrap;
+    }
+
+    .pricing-plan-name {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .pricing-price {
+      font-size: 48px;
+      font-weight: 900;
+      letter-spacing: -2px;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .pricing-period {
+      font-size: 13px;
+      color: var(--dim);
+      margin-bottom: 24px;
+    }
+
+    .pricing-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+
+    .pricing-feature {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 0;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .pricing-feature .check { color: var(--green); font-size: 13px; }
+    .pricing-feature .dash  { color: var(--dim);   font-size: 13px; }
+
+    .pricing-cta {
+      width: 100%;
+      margin-top: 28px;
+      padding: 12px;
+      border-radius: var(--r2);
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.1s, background 0.15s;
+    }
+
+    .pricing-cta.solid {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+    }
+    .pricing-cta.solid:hover { transform: translateY(-1px); filter: brightness(1.1); }
+
+    .pricing-cta.border {
+      background: none;
+      border: 1px solid var(--border2);
+      color: var(--text);
+    }
+    .pricing-cta.border:hover { background: var(--bg4); transform: translateY(-1px); }
+
+    /* ─────────────────────────────────
+       TESTIMONIALS
+    ───────────────────────────────── */
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-top: 56px;
+    }
+
+    .testi-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--r3);
+      padding: 28px;
+      transition: border-color 0.25s;
+    }
+    .testi-card:hover { border-color: var(--border2); }
+
+    .testi-stars {
+      color: #f59e0b;
+      font-size: 14px;
+      letter-spacing: 2px;
+      margin-bottom: 14px;
+    }
+
+    .testi-quote {
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+
+    .testi-author {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .testi-av {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      font-size: 14px;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .testi-name { font-size: 13px; font-weight: 600; }
+    .testi-role { font-size: 12px; color: var(--dim); }
+
+    /* ─────────────────────────────────
+       LOGOS / BUILT WITH
+    ───────────────────────────────── */
+    .logos-strip {
+      text-align: center;
+      padding: 64px 24px;
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+    }
+
+    .logos-strip-label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 28px;
+    }
+
+    .logos-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+      flex-wrap: wrap;
+      opacity: 0.45;
+    }
+
+    .logo-pill {
+      padding: 8px 18px;
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    /* ─────────────────────────────────
+       FAQ
+    ───────────────────────────────── */
+    .faq-list {
+      margin-top: 48px;
+      max-width: 720px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .faq-item {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .faq-q {
+      width: 100%;
+      background: none;
+      border: none;
+      color: var(--text);
+      text-align: left;
+      padding: 20px 0;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .faq-q:hover { color: var(--accent); }
+
+    .faq-chevron {
+      font-size: 18px;
+      color: var(--dim);
+      transition: transform 0.25s;
+      flex-shrink: 0;
+    }
+
+    .faq-item.open .faq-chevron { transform: rotate(180deg); color: var(--accent); }
+
+    .faq-a {
+      display: none;
+      padding: 0 0 20px;
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .faq-item.open .faq-a { display: block; }
+
+    /* ─────────────────────────────────
+       CTA BANNER
+    ───────────────────────────────── */
+    .cta-section {
+      text-align: center;
+      padding: 96px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-section .glow-orb {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(139,92,246,0.18) 0%, transparent 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .cta-title {
+      font-size: clamp(32px, 5vw, 60px);
+      font-weight: 900;
+      letter-spacing: -1.5px;
+      line-height: 1.05;
+      position: relative;
+      z-index: 1;
+      margin-bottom: 20px;
+    }
+
+    .cta-sub {
+      font-size: 18px;
+      color: var(--muted);
+      max-width: 480px;
+      margin: 0 auto 40px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .cta-btns {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      position: relative;
+      z-index: 1;
+      flex-wrap: wrap;
+    }
+
+    /* ─────────────────────────────────
+       FOOTER
+    ───────────────────────────────── */
+    footer {
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      padding: 48px 32px 32px;
+    }
+
+    .footer-grid {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.8fr 1fr 1fr 1fr;
+      gap: 40px;
+      padding-bottom: 40px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .footer-brand { }
+
+    .footer-brand .nav-logo { margin-bottom: 14px; font-size: 18px; }
+
+    .footer-brand-text {
+      font-size: 13px;
+      color: var(--dim);
+      line-height: 1.7;
+      max-width: 260px;
+    }
+
+    .footer-col-title {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .footer-col-links {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .footer-col-links a {
+      font-size: 13px;
+      color: var(--dim);
+      transition: color 0.15s;
+    }
+    .footer-col-links a:hover { color: var(--text); }
+
+    .footer-bottom {
+      max-width: 1100px;
+      margin: 24px auto 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--dim);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .footer-bottom-links {
+      display: flex;
+      gap: 16px;
+    }
+
+    .footer-bottom-links a { color: var(--dim); transition: color 0.15s; }
+    .footer-bottom-links a:hover { color: var(--text); }
+
+    /* ─────────────────────────────────
+       SCROLL REVEAL ANIMATIONS
+    ───────────────────────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .reveal.delay-1 { transition-delay: 0.1s; }
+    .reveal.delay-2 { transition-delay: 0.2s; }
+    .reveal.delay-3 { transition-delay: 0.3s; }
+    .reveal.delay-4 { transition-delay: 0.4s; }
+    .reveal.delay-5 { transition-delay: 0.5s; }
+
+    /* ─────────────────────────────────
+       RESPONSIVE
+    ───────────────────────────────── */
+    @media (max-width: 900px) {
+      .bento                { grid-template-columns: 1fr 1fr; }
+      .bento-card.wide      { grid-column: span 2; }
+      .steps                { grid-template-columns: 1fr; }
+      .step::after          { display: none; }
+      .pricing-grid         { grid-template-columns: 1fr; max-width: 420px; margin-left: auto; margin-right: auto; }
+      .testimonials-grid    { grid-template-columns: 1fr 1fr; }
+      .footer-grid          { grid-template-columns: 1fr 1fr; }
+      .live-demo-grid       { grid-template-columns: 1fr; }
+      .demo-body            { grid-template-columns: 160px 1fr; }
+      .demo-cards           { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 600px) {
+      .bento                { grid-template-columns: 1fr; }
+      .bento-card.wide      { grid-column: span 1; }
+      .testimonials-grid    { grid-template-columns: 1fr; }
+      .footer-grid          { grid-template-columns: 1fr 1fr; }
+      .nav-links            { display: none; }
+      .demo-body            { grid-template-columns: 1fr; height: auto; }
+      .demo-sidebar         { display: none; }
+      .demo-cards           { grid-template-columns: 1fr 1fr; }
+      .proof-sep            { display: none; }
+      .proof-strip          { gap: 24px; }
+    }
+
+    /* ─────────────────────────────────
+       GRADIENT BADGE COLORS
+    ───────────────────────────────── */
+    .ic-blue   { background: rgba(59,130,246,0.15);  }
+    .ic-purple { background: rgba(139,92,246,0.15); }
+    .ic-green  { background: rgba(34,197,94,0.15);  }
+    .ic-pink   { background: rgba(236,72,153,0.15); }
+    .ic-amber  { background: rgba(245,158,11,0.15); }
+    .ic-cyan   { background: rgba(6,182,212,0.15);  }
+
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════════════════════
+       NAV
+  ══════════════════════════════ -->
+  <nav>
+    <a class="nav-logo" href="landing.html">
+      <div class="nav-logo-icon">🔍</div>
+      AI Finder
+    </a>
+
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+    </div>
+
+    <div class="nav-right">
+      <button class="btn-ghost" onclick="location.href='index.html'">Sign In</button>
+      <button class="btn-primary" onclick="location.href='index.html'">Get started free</button>
+    </div>
+  </nav>
+
+
+  <!-- ══════════════════════════════
+       HERO
+  ══════════════════════════════ -->
+  <section class="hero" id="hero">
+    <div class="glow-orb a"></div>
+    <div class="glow-orb b"></div>
+    <div class="glow-orb c"></div>
+
+    <div class="hero-badge">
+      <div class="hero-badge-dot"></div>
+      Powered by AI · Now in open beta
+    </div>
+
+    <h1 class="hero-heading">
+      <span class="line1">Turn your idea into</span>
+      <span class="grad">a real product</span>
+    </h1>
+
+    <p class="hero-sub">
+      AI Finder is the AI-native cloud platform that lets you build, run, and deploy full-stack apps in seconds — no setup, no config, just describe and ship.
+    </p>
+
+    <div class="hero-ctas">
+      <button class="btn-hero fill" onclick="location.href='index.html'">
+        Start building for free
+      </button>
+      <button class="btn-hero outline" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">
+        See how it works →
+      </button>
+    </div>
+
+    <p class="hero-note">No credit card required · Free plan forever · Deploy in 30 seconds</p>
+
+    <!-- Demo window -->
+    <div class="hero-demo reveal">
+      <div class="demo-titlebar">
+        <div class="demo-dot r"></div>
+        <div class="demo-dot y"></div>
+        <div class="demo-dot g"></div>
+        <div class="demo-title">AI Finder — Joshua's Workspace</div>
+      </div>
+      <div class="demo-body">
+        <div class="demo-sidebar">
+          <div class="demo-sidebar-item active">
+            <div class="demo-sidebar-item" style="padding:8px 14px;font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.8px">Projects</div>
+          </div>
+          <div class="demo-sidebar-item">
+            <div class="dsi-icon" style="background:#1a1a40">🎬</div>tube-shorts-pro
+          </div>
+          <div class="demo-sidebar-item">
+            <div class="dsi-icon" style="background:#1a3326">🛒</div>shopify-scraper
+          </div>
+          <div class="demo-sidebar-item active">
+            <div class="dsi-icon" style="background:#2d1b4e">🔍</div>ai-finder-api
+          </div>
+          <div class="demo-sidebar-item">
+            <div class="dsi-icon" style="background:#1e2151">🤖</div>discord-bot
+          </div>
+        </div>
+
+        <div class="demo-main">
+          <div class="demo-prompt-area">
+            <div class="demo-prompt-label">AI Workspace</div>
+            <div class="demo-prompt-heading">Hi Joshua, what do you want to make?</div>
+            <div class="demo-prompt-box">
+              <div class="demo-prompt-text" id="heroTyped">
+                Build a REST API with AI-powered search<span class="typed-cursor"></span>
+              </div>
+              <button class="demo-prompt-send">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" style="width:14px;height:14px">
+                  <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="demo-cards">
+            <div class="demo-card">
+              <div class="demo-card-icon" style="background:#1a1a40">🎬</div>
+              <div class="demo-card-name">tube-shorts-pro</div>
+              <div class="demo-card-meta">Node.js · 2 days ago</div>
+            </div>
+            <div class="demo-card">
+              <div class="demo-card-icon" style="background:#1a3326">🛒</div>
+              <div class="demo-card-name">shopify-scraper</div>
+              <div class="demo-card-meta">Python · 4 days ago</div>
+            </div>
+            <div class="demo-card">
+              <div class="demo-card-icon" style="background:#2d1b4e">🔍</div>
+              <div class="demo-card-name">ai-finder-api</div>
+              <div class="demo-card-meta">Node.js · 2 weeks ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════════════════
+       PROOF STRIP
+  ══════════════════════════════ -->
+  <div class="proof-strip reveal">
+    <div class="proof-item">
+      <div class="proof-num" data-target="47000">0</div>
+      <div class="proof-label">Developers building</div>
+    </div>
+    <div class="proof-sep"></div>
+    <div class="proof-item">
+      <div class="proof-num" data-target="320000">0</div>
+      <div class="proof-label">Apps deployed</div>
+    </div>
+    <div class="proof-sep"></div>
+    <div class="proof-item">
+      <div class="proof-num" data-suffix="%">99.9</div>
+      <div class="proof-label">Uptime SLA</div>
+    </div>
+    <div class="proof-sep"></div>
+    <div class="proof-item">
+      <div class="proof-num" data-target="12000000">0</div>
+      <div class="proof-label">AI tokens processed</div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════
+       FEATURES / BENTO
+  ══════════════════════════════ -->
+  <section id="features">
+    <div class="section-wrap">
+      <div class="reveal">
+        <span class="section-label">Features</span>
+        <h2 class="section-title">Everything you need to ship fast</h2>
+        <p class="section-sub">From idea to deployed app in under a minute — AI handles the scaffolding while you stay in flow.</p>
+      </div>
+
+      <div class="bento">
+
+        <!-- Card 1: AI Assistant (wide) -->
+        <div class="bento-card wide reveal">
+          <div class="glow-orb" style="background:radial-gradient(circle,rgba(59,130,246,0.25) 0%,transparent 70%);top:-40px;left:-40px;"></div>
+          <div class="bento-icon ic-blue">🤖</div>
+          <div class="bento-title">AI Code Assistant</div>
+          <div class="bento-text">Chat with a context-aware AI that understands your entire project. Ask it to add features, debug errors, explain code, or refactor entire modules.</div>
+          <div class="bento-tag">✦ Powered by GPT-4o &amp; Claude</div>
+
+          <div class="mini-chat">
+            <div class="mini-msg human">
+              <div class="mini-msg-av">J</div>
+              <div class="mini-msg-bubble">Add JWT auth to the /login route</div>
+            </div>
+            <div class="mini-msg ai">
+              <div class="mini-msg-av">✦</div>
+              <div class="mini-msg-bubble">Done! I've added <code style="color:#60a5fa">jsonwebtoken</code>, created a <code style="color:#60a5fa">generateToken()</code> helper, and secured the route. ✓</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Instant Deploy -->
+        <div class="bento-card reveal delay-1">
+          <div class="glow-orb" style="background:radial-gradient(circle,rgba(34,197,94,0.2) 0%,transparent 70%);top:-30px;right:-30px;"></div>
+          <div class="bento-icon ic-green">🚀</div>
+          <div class="bento-title">One-click Deploy</div>
+          <div class="bento-text">Hit Deploy and your app is live on a global CDN in seconds. Custom domains, auto-SSL, and zero-downtime re-deploys included.</div>
+          <div class="bento-tag">✦ Global edge CDN</div>
+        </div>
+
+        <!-- Card 3: Syntax Highlighting -->
+        <div class="bento-card reveal delay-1">
+          <div class="glow-orb" style="background:radial-gradient(circle,rgba(139,92,246,0.2) 0%,transparent 70%);bottom:-30px;right:-30px;"></div>
+          <div class="bento-icon ic-purple">✨</div>
+          <div class="bento-title">VS Code–Style Editor</div>
+          <div class="bento-text">Full syntax highlighting, intellisense, minimap, split view, and Vim mode. Works entirely in the browser with zero installs.</div>
+
+          <div class="mini-code">
+<span class="mc-kw">const</span> <span class="mc-fn">app</span> = <span class="mc-fn">express</span>();<br>
+<span class="mc-cmt">// 🤖 AI added this route</span><br>
+<span class="mc-fn">app</span>.<span class="mc-fn">get</span>(<span class="mc-str">'/api/tools'</span>, <span class="mc-kw">async</span> (req, res) => {<br>
+&nbsp;&nbsp;<span class="mc-kw">const</span> data = <span class="mc-kw">await</span> <span class="mc-fn">findTools</span>(req.query);<br>
+&nbsp;&nbsp;<span class="mc-fn">res</span>.<span class="mc-fn">json</span>({ data });<br>
+});
+          </div>
+        </div>
+
+        <!-- Card 4: Multiplayer -->
+        <div class="bento-card reveal delay-2">
+          <div class="bento-icon ic-pink">👥</div>
+          <div class="bento-title">Real-time Multiplayer</div>
+          <div class="bento-text">Invite teammates to code together. Live cursors, inline comments, and shared terminals — like Google Docs for code.</div>
+          <div class="bento-tag">✦ Up to 10 collaborators</div>
+        </div>
+
+        <!-- Card 5: Templates -->
+        <div class="bento-card reveal delay-2">
+          <div class="bento-icon ic-amber">📦</div>
+          <div class="bento-title">100+ Templates</div>
+          <div class="bento-text">Jumpstart with React, Express, FastAPI, Discord bots, Telegram bots, Shopify apps, and more. All pre-wired and ready to run.</div>
+          <div class="bento-tag">✦ New templates weekly</div>
+        </div>
+
+        <!-- Card 6: Secrets / Env (wide) -->
+        <div class="bento-card wide reveal delay-3">
+          <div class="glow-orb" style="background:radial-gradient(circle,rgba(6,182,212,0.18) 0%,transparent 70%);bottom:-40px;left:-40px;"></div>
+          <div class="bento-icon ic-cyan">🔐</div>
+          <div class="bento-title">Secrets &amp; Environment Variables</div>
+          <div class="bento-text">Store API keys, database URLs, and any secret securely in an encrypted vault. Automatically injected at runtime — never exposed in your code.</div>
+          <div class="bento-tag">✦ AES-256 encryption</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════════════════
+       HOW IT WORKS
+  ══════════════════════════════ -->
+  <section id="how" style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+    <div class="section-wrap text-center">
+      <div class="reveal">
+        <span class="section-label">How it works</span>
+        <h2 class="section-title">From idea to live app in 3 steps</h2>
+        <p class="section-sub">No local setup. No DevOps. No waiting. Just describe what you want and let AI do the rest.</p>
+      </div>
+
+      <div class="steps">
+        <div class="step reveal delay-1">
+          <div class="step-num">1</div>
+          <div class="step-title">Describe your app</div>
+          <div class="step-text">Type a plain-English prompt. Our AI understands your intent, picks the right stack, and scaffolds a working project in seconds.</div>
+        </div>
+        <div class="step reveal delay-2">
+          <div class="step-num">2</div>
+          <div class="step-title">Edit &amp; customize</div>
+          <div class="step-text">Use the browser-based VS Code editor, chat with AI to add features, manage packages, set env vars, and run your app with one click.</div>
+        </div>
+        <div class="step reveal delay-3">
+          <div class="step-num">3</div>
+          <div class="step-title">Deploy &amp; share</div>
+          <div class="step-text">Hit the Deploy button to get a live HTTPS URL on a global edge network. Share it, embed it, or connect a custom domain — instantly.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════════════════
+       LIVE EDITOR DEMO
+  ══════════════════════════════ -->
+  <div class="live-demo-section">
+    <div class="section-wrap">
+      <div class="live-demo-grid">
+        <div class="live-demo-text reveal">
+          <span class="section-label">Editor</span>
+          <h2 class="section-title">A real IDE, in your browser</h2>
+          <p class="section-sub">Syntax highlighting, Ctrl+F search, file tabs, split view, a terminal, and a live preview pane — all inside one tab.</p>
+
+          <div class="live-demo-check">
+            <div class="check-icon">✓</div>
+            <div class="check-text"><strong>Syntax highlighting</strong> for 40+ languages including Python, JS, Go, Rust.</div>
+          </div>
+          <div class="live-demo-check">
+            <div class="check-icon">✓</div>
+            <div class="check-text"><strong>Integrated terminal</strong> with history, session tabs, and color output.</div>
+          </div>
+          <div class="live-demo-check">
+            <div class="check-icon">✓</div>
+            <div class="check-text"><strong>Split view</strong> — edit code on the left, see your running app on the right.</div>
+          </div>
+          <div class="live-demo-check">
+            <div class="check-icon">✓</div>
+            <div class="check-text"><strong>Git integration</strong> — commit, diff, and push without leaving the browser.</div>
+          </div>
+        </div>
+
+        <div class="editor-mock reveal delay-2">
+          <div class="editor-mock-bar">
+            <div class="editor-mock-dot r"></div>
+            <div class="editor-mock-dot y"></div>
+            <div class="editor-mock-dot g"></div>
+            <div class="editor-mock-tabs">
+              <div class="editor-mock-tab active">server.js</div>
+              <div class="editor-mock-tab">routes/api.js</div>
+              <div class="editor-mock-tab">.env</div>
+            </div>
+          </div>
+          <div class="editor-mock-body">
+            <div class="editor-line"><span class="editor-ln">1</span><span class="editor-code"><span class="mc-kw">const</span> <span class="mc-fn">express</span> = require(<span class="mc-str">'express'</span>);</span></div>
+            <div class="editor-line"><span class="editor-ln">2</span><span class="editor-code"><span class="mc-kw">const</span> <span class="mc-fn">app</span> = <span class="mc-fn">express</span>();</span></div>
+            <div class="editor-line"><span class="editor-ln">3</span><span class="editor-code"></span></div>
+            <div class="editor-line"><span class="editor-ln">4</span><span class="editor-code"><span class="mc-fn">app</span>.<span class="mc-fn">use</span>(<span class="mc-fn">express</span>.<span class="mc-fn">json</span>());</span></div>
+            <div class="editor-line"><span class="editor-ln">5</span><span class="editor-code"></span></div>
+            <div class="editor-line"><span class="editor-ln">6</span><span class="editor-code"><span class="mc-cmt">// 🤖 AI Finder generated this endpoint</span></span></div>
+            <div class="editor-line"><span class="editor-ln">7</span><span class="editor-code"><span class="mc-fn">app</span>.<span class="mc-fn">get</span>(<span class="mc-str">'/api/search'</span>, <span class="mc-kw">async</span> (<span class="mc-fn">req</span>, <span class="mc-fn">res</span>) => {</span></div>
+            <div class="editor-line"><span class="editor-ln">8</span><span class="editor-code">&nbsp;&nbsp;<span class="mc-kw">const</span> { q } = req.query;</span></div>
+            <div class="editor-line"><span class="editor-ln">9</span><span class="editor-code">&nbsp;&nbsp;<span class="mc-kw">const</span> results = <span class="mc-kw">await</span> <span class="mc-fn">aiSearch</span>(q);</span></div>
+            <div class="editor-line typing-line"><span class="editor-ln">10</span><span class="editor-code">&nbsp;&nbsp;<span class="mc-fn">res</span>.<span class="mc-fn">json</span>({ results, total: results.length });</span></div>
+            <div class="editor-line"><span class="editor-ln">11</span><span class="editor-code">});</span></div>
+            <div class="editor-line"><span class="editor-ln">12</span><span class="editor-code"></span></div>
+            <div class="editor-line"><span class="editor-ln">13</span><span class="editor-code"><span class="mc-fn">app</span>.<span class="mc-fn">listen</span>(<span class="mc-num">3000</span>, () => <span class="mc-fn">console</span>.<span class="mc-fn">log</span>(<span class="mc-str">'✓ Server running'</span>));</span></div>
+          </div>
+          <div class="editor-mock-footer">
+            <span>🟢 Running · Port 3000</span>
+            <span>server.js · JavaScript · UTF-8</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════
+       LOGOS
+  ══════════════════════════════ -->
+  <div class="logos-strip reveal">
+    <div class="logos-strip-label">Build apps that integrate with</div>
+    <div class="logos-row">
+      <div class="logo-pill">OpenAI</div>
+      <div class="logo-pill">Stripe</div>
+      <div class="logo-pill">Supabase</div>
+      <div class="logo-pill">MongoDB</div>
+      <div class="logo-pill">Twilio</div>
+      <div class="logo-pill">Discord</div>
+      <div class="logo-pill">Shopify</div>
+      <div class="logo-pill">GitHub</div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════
+       PRICING
+  ══════════════════════════════ -->
+  <section id="pricing">
+    <div class="section-wrap text-center">
+      <div class="reveal">
+        <span class="section-label">Pricing</span>
+        <h2 class="section-title">Start free, scale when ready</h2>
+        <p class="section-sub">Every plan includes the editor, AI assistant, and live deploys. Upgrade for more power and resources.</p>
+      </div>
+
+      <div class="pricing-grid">
+
+        <!-- Free -->
+        <div class="pricing-card reveal delay-1">
+          <div class="pricing-plan-name">Starter</div>
+          <div class="pricing-price">$0</div>
+          <div class="pricing-period">/ month · forever free</div>
+          <hr class="pricing-divider" />
+          <div class="pricing-feature"><span class="check">✓</span> 10 projects</div>
+          <div class="pricing-feature"><span class="check">✓</span> 200 AI credits / month</div>
+          <div class="pricing-feature"><span class="check">✓</span> 1 GB storage</div>
+          <div class="pricing-feature"><span class="check">✓</span> Public deployments</div>
+          <div class="pricing-feature"><span class="check">✓</span> Community support</div>
+          <div class="pricing-feature"><span class="dash">—</span> Custom domains</div>
+          <div class="pricing-feature"><span class="dash">—</span> Private projects</div>
+          <div class="pricing-feature"><span class="dash">—</span> Team collaboration</div>
+          <button class="pricing-cta border" onclick="location.href='index.html'">Get started free</button>
+        </div>
+
+        <!-- Core (featured) -->
+        <div class="pricing-card featured reveal delay-2">
+          <div class="pricing-badge">Most popular</div>
+          <div class="pricing-plan-name">Core</div>
+          <div class="pricing-price">$20</div>
+          <div class="pricing-period">/ month · billed monthly</div>
+          <hr class="pricing-divider" />
+          <div class="pricing-feature"><span class="check">✓</span> Unlimited projects</div>
+          <div class="pricing-feature"><span class="check">✓</span> 2,000 AI credits / month</div>
+          <div class="pricing-feature"><span class="check">✓</span> 10 GB storage</div>
+          <div class="pricing-feature"><span class="check">✓</span> Custom domains</div>
+          <div class="pricing-feature"><span class="check">✓</span> Private projects</div>
+          <div class="pricing-feature"><span class="check">✓</span> Priority support</div>
+          <div class="pricing-feature"><span class="dash">—</span> Team workspaces</div>
+          <div class="pricing-feature"><span class="dash">—</span> SSO &amp; audit logs</div>
+          <button class="pricing-cta solid" onclick="location.href='index.html'">Upgrade to Core</button>
+        </div>
+
+        <!-- Teams -->
+        <div class="pricing-card reveal delay-3">
+          <div class="pricing-plan-name">Teams</div>
+          <div class="pricing-price">$60</div>
+          <div class="pricing-period">/ month · per 3 seats</div>
+          <hr class="pricing-divider" />
+          <div class="pricing-feature"><span class="check">✓</span> Everything in Core</div>
+          <div class="pricing-feature"><span class="check">✓</span> Shared workspaces</div>
+          <div class="pricing-feature"><span class="check">✓</span> Real-time multiplayer</div>
+          <div class="pricing-feature"><span class="check">✓</span> 20 GB storage / seat</div>
+          <div class="pricing-feature"><span class="check">✓</span> SSO (SAML / OAuth)</div>
+          <div class="pricing-feature"><span class="check">✓</span> Audit logs</div>
+          <div class="pricing-feature"><span class="check">✓</span> SLA &amp; dedicated support</div>
+          <div class="pricing-feature"><span class="check">✓</span> Unlimited AI credits</div>
+          <button class="pricing-cta border" onclick="location.href='index.html'">Start team trial</button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════════════════
+       TESTIMONIALS
+  ══════════════════════════════ -->
+  <section style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+    <div class="section-wrap text-center">
+      <div class="reveal">
+        <span class="section-label">Testimonials</span>
+        <h2 class="section-title">Loved by builders worldwide</h2>
+        <p class="section-sub">Thousands of developers, founders, and students build their products on AI Finder every day.</p>
+      </div>
+
+      <div class="testimonials-grid">
+
+        <div class="testi-card reveal delay-1">
+          <div class="testi-stars">★★★★★</div>
+          <div class="testi-quote">"I went from a rough idea to a live Shopify app in under an hour. The AI assistant is insane — it wrote my entire scraper."</div>
+          <div class="testi-author">
+            <div class="testi-av" style="background:linear-gradient(135deg,#3b82f6,#8b5cf6)">M</div>
+            <div>
+              <div class="testi-name">Marcus T.</div>
+              <div class="testi-role">Indie developer, London</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testi-card reveal delay-2">
+          <div class="testi-stars">★★★★★</div>
+          <div class="testi-quote">"As a designer who codes a little, this is the first platform that doesn't make me feel stupid. I shipped my portfolio API in 20 mins."</div>
+          <div class="testi-author">
+            <div class="testi-av" style="background:linear-gradient(135deg,#ec4899,#f59e0b)">S</div>
+            <div>
+              <div class="testi-name">Sofia R.</div>
+              <div class="testi-role">Product designer, Berlin</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testi-card reveal delay-3">
+          <div class="testi-stars">★★★★★</div>
+          <div class="testi-quote">"My whole startup's backend runs on AI Finder. 99.9% uptime, instant deploys, and the team collaboration features are 🔥."</div>
+          <div class="testi-author">
+            <div class="testi-av" style="background:linear-gradient(135deg,#22c55e,#06b6d4)">A</div>
+            <div>
+              <div class="testi-name">Arjun K.</div>
+              <div class="testi-role">Founder, Mumbai</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testi-card reveal delay-1">
+          <div class="testi-stars">★★★★★</div>
+          <div class="testi-quote">"I teach a coding bootcamp. We switched all 80 students to AI Finder — no more 'it works on my machine' headaches. A lifesaver."</div>
+          <div class="testi-author">
+            <div class="testi-av" style="background:linear-gradient(135deg,#f59e0b,#ef4444)">P</div>
+            <div>
+              <div class="testi-name">Priya S.</div>
+              <div class="testi-role">CS instructor, Toronto</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testi-card reveal delay-2">
+          <div class="testi-stars">★★★★★</div>
+          <div class="testi-quote">"Built and deployed a Discord bot for 5,000 members in one afternoon. The template was 80% done and AI filled the rest."</div>
+          <div class="testi-author">
+            <div class="testi-av" style="background:linear-gradient(135deg,#8b5cf6,#ec4899)">L</div>
+            <div>
+              <div class="testi-name">Lena W.</div>
+              <div class="testi-role">Community manager, NYC</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testi-card reveal delay-3">
+          <div class="testi-stars">★★★★★</div>
+          <div class="testi-quote">"I replaced my entire Heroku + Vercel + Replit stack with just AI Finder. Cheaper, faster, and the AI co-pilot is worth it alone."</div>
+          <div class="testi-author">
+            <div class="testi-av" style="background:linear-gradient(135deg,#06b6d4,#3b82f6)">D</div>
+            <div>
+              <div class="testi-name">Daniel O.</div>
+              <div class="testi-role">Full-stack dev, Lagos</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════════════════
+       FAQ
+  ══════════════════════════════ -->
+  <section id="faq">
+    <div class="section-wrap text-center">
+      <div class="reveal">
+        <span class="section-label">FAQ</span>
+        <h2 class="section-title">Common questions</h2>
+        <p class="section-sub">Everything you need to know before you start.</p>
+      </div>
+
+      <div class="faq-list reveal delay-1">
+
+        <div class="faq-item open">
+          <button class="faq-q">
+            Do I need to install anything?
+            <span class="faq-chevron">▾</span>
+          </button>
+          <div class="faq-a">Nope! AI Finder runs entirely in your browser. No local installs, no Docker, no WSL. Open a tab and start coding within seconds.</div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q">
+            What languages and frameworks are supported?
+            <span class="faq-chevron">▾</span>
+          </button>
+          <div class="faq-a">We support Node.js, Python, React, Vue, Go, Rust, PHP, Ruby, and more. Any language you can run in a Linux container works on AI Finder. New runtimes are added regularly.</div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q">
+            How does the AI assistant work?
+            <span class="faq-chevron">▾</span>
+          </button>
+          <div class="faq-a">Our AI reads your entire project context — file structure, open files, recent terminal output, and your conversation history — and uses that to give accurate, relevant help. You can chat naturally: "add a login page", "fix the TypeScript error on line 42", or "refactor this function to be async".</div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q">
+            Is my code private?
+            <span class="faq-chevron">▾</span>
+          </button>
+          <div class="faq-a">On the free Starter plan, projects are public by default. Upgrade to Core or Teams to make projects private. Your environment variables and secrets are always encrypted and never visible to anyone else.</div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q">
+            Can I connect my own domain?
+            <span class="faq-chevron">▾</span>
+          </button>
+          <div class="faq-a">Yes — Core and Teams plans include custom domain support. Point your domain's CNAME record at our edge network and you'll get auto-SSL provisioning in under 60 seconds.</div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q">
+            Can I import an existing GitHub repo?
+            <span class="faq-chevron">▾</span>
+          </button>
+          <div class="faq-a">Absolutely. Connect your GitHub account and import any repo directly. Changes you make in AI Finder can be pushed back to GitHub with one click from the Source Control panel.</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════════════════
+       FINAL CTA
+  ══════════════════════════════ -->
+  <section class="cta-section">
+    <div class="glow-orb"></div>
+
+    <div class="reveal">
+      <h2 class="cta-title">
+        Your next app is<br>
+        <span style="background:linear-gradient(90deg,#60a5fa,#a78bfa,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">30 seconds away</span>
+      </h2>
+      <p class="cta-sub">No setup. No credit card. Just start describing what you want to build.</p>
+      <div class="cta-btns">
+        <button class="btn-hero fill" onclick="location.href='index.html'">Start building — it's free</button>
+        <button class="btn-hero outline" onclick="location.href='index.html'">See demo workspace</button>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════════════════
+       FOOTER
+  ══════════════════════════════ -->
+  <footer>
+    <div class="footer-grid">
+
+      <div class="footer-brand">
+        <div class="nav-logo">
+          <div class="nav-logo-icon">🔍</div>
+          AI Finder
+        </div>
+        <p class="footer-brand-text">The AI-native cloud platform for developers and makers. Build, deploy, and iterate at the speed of thought.</p>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Product</div>
+        <div class="footer-col-links">
+          <a href="#features">Features</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#" onclick="location.href='index.html'">Templates</a>
+          <a href="#">Changelog</a>
+          <a href="#">Roadmap</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Resources</div>
+        <div class="footer-col-links">
+          <a href="#">Documentation</a>
+          <a href="#">API Reference</a>
+          <a href="#">Blog</a>
+          <a href="#">Community</a>
+          <a href="#">Status</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Company</div>
+        <div class="footer-col-links">
+          <a href="#">About</a>
+          <a href="#">Careers</a>
+          <a href="#">Press</a>
+          <a href="#">Contact</a>
+          <a href="#">Twitter / X</a>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="footer-bottom">
+      <span>© 2026 AI Finder. All rights reserved.</span>
+      <div class="footer-bottom-links">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">Cookies</a>
+        <a href="#">Security</a>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- ══════════════════════════════
+       JS
+  ══════════════════════════════ -->
+  <script>
+    /* Scroll reveal */
+    const revealEls = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.12 });
+    revealEls.forEach(el => io.observe(el));
+
+    /* Animated counter */
+    function animateCount(el, target, suffix = '') {
+      const duration = 2000;
+      const step = 16;
+      const steps = duration / step;
+      const inc = target / steps;
+      let cur = 0;
+      const t = setInterval(() => {
+        cur += inc;
+        if (cur >= target) { cur = target; clearInterval(t); }
+        const val = cur >= 1000000 ? (cur / 1000000).toFixed(1) + 'M' :
+                    cur >= 1000    ? (cur / 1000).toFixed(0) + 'K' :
+                    Math.round(cur).toString();
+        el.textContent = val + suffix;
+      }, step);
+    }
+
+    const proofIo = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        const el = e.target;
+        const target = parseFloat(el.dataset.target);
+        const suffix = el.dataset.suffix || '';
+        if (!isNaN(target)) animateCount(el, target, suffix);
+        proofIo.unobserve(el);
+      });
+    }, { threshold: 0.5 });
+
+    document.querySelectorAll('.proof-num[data-target]').forEach(el => proofIo.observe(el));
+
+    /* FAQ accordion */
+    document.querySelectorAll('.faq-q').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const item = btn.closest('.faq-item');
+        const wasOpen = item.classList.contains('open');
+        document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+        if (!wasOpen) item.classList.add('open');
+      });
+    });
+
+    /* Typewriter in hero demo */
+    const phrases = [
+      'Build a REST API with AI-powered search',
+      'Create a real-time chat app with WebSockets',
+      'Make a Discord bot for my gaming server',
+      'Build a Shopify product scraper in Python',
+      'Generate a crypto price dashboard with React',
+    ];
+    let pi = 0, ci = 0, deleting = false;
+    const typed = document.getElementById('heroTyped');
+
+    function typeStep() {
+      const phrase = phrases[pi];
+      if (!deleting) {
+        ci++;
+        typed.innerHTML = phrase.slice(0, ci) + '<span class="typed-cursor"></span>';
+        if (ci === phrase.length) {
+          deleting = true;
+          setTimeout(typeStep, 2000);
+          return;
+        }
+      } else {
+        ci--;
+        typed.innerHTML = phrase.slice(0, ci) + '<span class="typed-cursor"></span>';
+        if (ci === 0) {
+          deleting = false;
+          pi = (pi + 1) % phrases.length;
+          setTimeout(typeStep, 400);
+          return;
+        }
+      }
+      setTimeout(typeStep, deleting ? 30 : 55);
+    }
+    typeStep();
+
+    /* Sticky nav shadow on scroll */
+    const navEl = document.querySelector('nav');
+    window.addEventListener('scroll', () => {
+      navEl.style.boxShadow = window.scrollY > 20 ? '0 2px 20px rgba(0,0,0,0.4)' : 'none';
+    });
+  </script>
+
+</body>
+</html>
